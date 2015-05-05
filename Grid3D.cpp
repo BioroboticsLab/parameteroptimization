@@ -9,7 +9,7 @@
 #include <cereal/archives/json.hpp>
 #include <cereal/types/polymorphic.hpp>
 
-#include "utility/CvHelper.h"
+#include "../pipeline/util/CvHelper.h"
 
 const Grid3D::coordinates3D_t Grid3D::_coordinates3D = Grid3D::generate_3D_base_coordinates();
 

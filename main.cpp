@@ -11,20 +11,20 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/GroundTruthEvaluator.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/GroundTruthEvaluator.h"
 
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/Preprocessor.h"
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/Localizer.h"
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/EllipseFitter.h"
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/GridFitter.h"
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/Decoder.h"
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/datastructure/settings.h"
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/datastructure/PipelineGrid.h"
-#include "source/tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/datastructure/PipelineGrid.impl.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Preprocessor.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Localizer.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/EllipseFitter.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/GridFitter.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Decoder.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/util/Util.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/settings.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/PipelineGrid.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/PipelineGrid.impl.h"
 
 #include "source/tracking/serialization/SerializationData.h"
 
-#include "source/utility/util.h"
 
 namespace {
 typedef std::pair<boost::filesystem::path, boost::filesystem::path> path_pair_t;
@@ -166,7 +166,8 @@ public:
 
 		_evaluation.get().evaluateLocalizer(0, taglist);
 
-		_localizer.get().getSettings().print(_localizer.get().getSettings().getPTree());
+		// TODO
+		//_localizer.get().getSettings().print(_localizer.get().getSettings().getPTree());
 
 		boost::optional<LocalizerResult> result =
 				getLocalizerResult(_evaluation.get().getLocalizerResults(), _localizer.get().getSettings());
@@ -227,7 +228,7 @@ template <typename T, typename RecurseFunctor>
 recurse_t<std::function<void(T)>, std::vector<T>, RecurseFunctor>
 		getRecurseFunctor(std::vector<T>&& range, std::string const& param, RecurseFunctor&& recurseFunctor,
 							pipeline::settings::localizer_settings_t& settings,
-							pipeline::Localizer::Localizer& localizer)
+							pipeline::Localizer& localizer)
 {
 	std::function<void(T)> paramSetter = std::bind(&pipeline::settings::localizer_settings_t::_setValue<T>, &settings,
 								  param, std::placeholders::_1);
@@ -264,25 +265,25 @@ void optimizeParameters(const path_pair_t& task) {
 
 	apply_t applicator(preprocessor, localizer, imgOrig, evaluation, localizerResults);
 
-	auto binaryThresholdFunctor = getRecurseFunctor(util::linspace<int>(25, 30, 2), pipeline::settings::Localizer::Params::BINARY_THRESHOLD,
+	auto binaryThresholdFunctor = getRecurseFunctor(Util::linspace<int>(25, 30, 2), pipeline::settings::Localizer::Params::BINARY_THRESHOLD,
 													std::move(applicator), localizerSettings, localizer);
 
-	auto numIterationsFunctor = getRecurseFunctor(util::linspace<unsigned int>(3, 5, 2), pipeline::settings::Localizer::Params::FIRST_DILATION_NUM_ITERATIONS,
+	auto numIterationsFunctor = getRecurseFunctor(Util::linspace<unsigned int>(3, 5, 2), pipeline::settings::Localizer::Params::FIRST_DILATION_NUM_ITERATIONS,
 													std::move(binaryThresholdFunctor), localizerSettings, localizer);
 
-	auto firstDilationSizeFunctor = getRecurseFunctor(util::linspace<unsigned int>(2, 3, 2), pipeline::settings::Localizer::Params::FIRST_DILATION_SIZE,
+	auto firstDilationSizeFunctor = getRecurseFunctor(Util::linspace<unsigned int>(2, 3, 2), pipeline::settings::Localizer::Params::FIRST_DILATION_SIZE,
 													std::move(numIterationsFunctor), localizerSettings, localizer);
 
-	auto erosionSizeFunctor = getRecurseFunctor(util::linspace<unsigned int>(23, 26, 2), pipeline::settings::Localizer::Params::EROSION_SIZE,
+	auto erosionSizeFunctor = getRecurseFunctor(Util::linspace<unsigned int>(23, 26, 2), pipeline::settings::Localizer::Params::EROSION_SIZE,
 													std::move(firstDilationSizeFunctor), localizerSettings, localizer);
 
-	auto secondDilationSizeFunctor = getRecurseFunctor(util::linspace<unsigned int>(2, 3, 2), pipeline::settings::Localizer::Params::SECOND_DILATION_SIZE,
+	auto secondDilationSizeFunctor = getRecurseFunctor(Util::linspace<unsigned int>(2, 3, 2), pipeline::settings::Localizer::Params::SECOND_DILATION_SIZE,
 													std::move(erosionSizeFunctor), localizerSettings, localizer);
 
-	auto maxTagSizeFunctor = getRecurseFunctor(util::linspace<unsigned int>(200, 300, 2), pipeline::settings::Localizer::Params::MAX_TAG_SIZE,
+	auto maxTagSizeFunctor = getRecurseFunctor(Util::linspace<unsigned int>(200, 300, 2), pipeline::settings::Localizer::Params::MAX_TAG_SIZE,
 													std::move(secondDilationSizeFunctor), localizerSettings, localizer);
 
-	auto minBoundingBoxSizeFunctor = getRecurseFunctor(util::linspace<int>(300, 400, 2), pipeline::settings::Localizer::Params::MIN_BOUNDING_BOX_SIZE,
+	auto minBoundingBoxSizeFunctor = getRecurseFunctor(Util::linspace<int>(300, 400, 2), pipeline::settings::Localizer::Params::MIN_BOUNDING_BOX_SIZE,
 													std::move(maxTagSizeFunctor), localizerSettings, localizer);
 
 	minBoundingBoxSizeFunctor();
@@ -292,56 +293,11 @@ void optimizeParameters(const path_pair_t& task) {
 		LocalizerResult bestResult = *localizerResults.begin();
 
 		std::cout << "Best Result: " << std::endl;
-		bestResult.settings.print(bestResult.settings.getPTree());
+		//bestResult.settings.print(bestResult.settings.getPTree());
 		std::cout << "Recall: " << bestResult.recall << std::endl;
 		std::cout << "Precision: " << bestResult.precision << std::endl;
 		std::cout << "F-Score: " << bestResult.fscore << std::endl;
 	}
-
-////		static const int BINARY_THRESHOLD = 29;
-////static const unsigned int FIRST_DILATION_NUM_ITERATIONS = 4;
-////static const unsigned int FIRST_DILATION_SIZE = 2;
-////static const unsigned int EROSION_SIZE = 25;
-////static const unsigned int SECOND_DILATION_SIZE = 2;
-////static const unsigned int MAX_TAG_SIZE = 250;
-////static const int MIN_BOUNDING_BOX_SIZE = 100;
-
-
-//		for (int binary_threshold = 0; binary_threshold < 100; ++binary_threshold) {
-
-//			MeasureTimeRAII measure;
-
-//			cv::Mat img(imgOrig);
-
-//			pipeline::settings::preprocessor_settings_t preprocessorSettings;
-//			pipeline::settings::localizer_settings_t localizerSettings;
-
-//			preprocessorSettings._setValue(settingspreprocessor::COMB_ENABLED, true);
-//			preprocessorSettings._setValue(settingspreprocessor::HONEY_ENABLED, true);
-
-////			localizerSettings._setValue(pipeline::settings::Localizer::Params::BINARY_THRESHOLD, binary_threshold);
-
-//			auto binThrSetter = std::bind(&pipeline::settings::localizer_settings_t::_setValue<int>, &localizerSettings,
-//										  pipeline::settings::Localizer::Params::BINARY_THRESHOLD, std::placeholders::_1);
-//			const auto range = util::linspace(1, 100, 100);
-//			binThrSetter(binary_threshold);
-
-//			pipeline::Preprocessor preprocessor;
-//			pipeline::Localizer localizer;
-
-//			preprocessor.setOptions(preprocessorSettings);
-//			localizer.loadSettings(localizerSettings);
-
-//			cv::Mat imgOut = preprocessor.process(img);
-//			taglist = localizer.process(std::move(img), std::move(imgOut));
-
-//			evaluation.evaluateLocalizer(0, taglist);
-
-//			std::cout << getLocalizerScore(evaluation.getLocalizerResults());
-
-//			evaluation.reset();
-//		}
-//	}
 }
 
 int main(int argc, char** argv) {

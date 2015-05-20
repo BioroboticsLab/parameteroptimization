@@ -1,31 +1,12 @@
 #include "LocalizerModel.h"
 
-#include <cereal/types/polymorphic.hpp>
-#include <cereal/archives/json.hpp>
-#include <cereal/types/vector.hpp>
-
-#include "source/tracking/serialization/SerializationData.h"
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/Tag.h"
 
 namespace opt {
 
 LocalizerModel::LocalizerModel(bopt_params param, const path_pair_t &task,
                                const LocalizerModel::limitsByParam &limitsByParameter)
-    : bayesopt::ContinuousModel(_numDimensions, param)
-    , _limitsByParameter(limitsByParameter) {
-	_image = cv::imread(task.first.string());
-
-	Serialization::Data data;
-	{
-		std::ifstream is(task.second.string());
-		cereal::JSONInputArchive ar(is);
-
-		// load serialized data into member .data
-		ar(data);
-	}
-
-	_evaluation = std::make_unique<GroundTruthEvaluation>(std::move(data));
-
+    : OptimizationModel(param, task, limitsByParameter, getNumDimensions()) {
 	namespace settingspreprocessor = pipeline::settings::Preprocessor::Params;
 	_preprocessorSettings._setValue(settingspreprocessor::COMB_ENABLED, true);
 	_preprocessorSettings._setValue(settingspreprocessor::HONEY_ENABLED, true);
@@ -98,9 +79,5 @@ double LocalizerModel::evaluateSample(const boost::numeric::ublas::vector<double
 	}
 
 	return (1 - score);
-}
-
-bool LocalizerModel::checkReachability(const boost::numeric::ublas::vector<double> &) {
-	return true;
 }
 }

@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Common.h"
-
-#include <bayesopt/bayesopt.hpp>
+#include "OptimizationModel.h"
 
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/settings.h"
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Preprocessor.h"
@@ -29,20 +28,10 @@ struct LocalizerResult : OptimizationResult {
 	pipeline::settings::localizer_settings_t lsettings;
 };
 
-class LocalizerModel : public bayesopt::ContinuousModel {
+class LocalizerModel : public OptimizationModel {
   public:
-	static const size_t _numDimensions = 13;
-
-	typedef std::map<std::string, limits_t> limitsByParam;
-
 	LocalizerModel(bopt_params param, path_pair_t const &task,
 	               limitsByParam const &limitsByParameter);
-
-	template <typename ParamType, typename Settings>
-	void setValueFromQuery(Settings &settings, std::string const &paramName, double value) {
-		settings.template _setValue<ParamType>(
-		    paramName, _limitsByParameter[paramName].getVal<ParamType>(value));
-	}
 
 	void applyQueryToSettings(const boost::numeric::ublas::vector<double> &query,
 	                          pipeline::settings::localizer_settings_t &lsettings,
@@ -52,12 +41,15 @@ class LocalizerModel : public bayesopt::ContinuousModel {
 	evaluate(pipeline::settings::localizer_settings_t &lsettings,
 	         pipeline::settings::preprocessor_settings_t &psettings);
 
-	double evaluateSample(const boost::numeric::ublas::vector<double> &query);
+	virtual double evaluateSample(const boost::numeric::ublas::vector<double> &query) override;
 
-	bool checkReachability(const boost::numeric::ublas::vector<double> &);
+	virtual size_t getNumDimensions() const override { return 13; }
 
 	pipeline::settings::preprocessor_settings_t getPreprocessorSettings() const {
 		return _preprocessorSettings;
+	}
+	pipeline::settings::localizer_settings_t getLocalizerSettings() const {
+		return _localizerSettings;
 	}
 
   private:
@@ -66,11 +58,5 @@ class LocalizerModel : public bayesopt::ContinuousModel {
 
 	pipeline::settings::localizer_settings_t _localizerSettings;
 	pipeline::Localizer _localizer;
-
-	cv::Mat _image;
-
-	std::unique_ptr<GroundTruthEvaluation> _evaluation;
-
-	limitsByParam _limitsByParameter;
 };
 }

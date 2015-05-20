@@ -104,7 +104,7 @@ void optimizeParameters(const path_pair_t &task, const bopt_params &params) {
 
 	LocalizerModel model(params, task, limitsByParameter);
 
-	boost::numeric::ublas::vector<double> bestPoint(LocalizerModel::_numDimensions);
+	boost::numeric::ublas::vector<double> bestPoint(model.getNumDimensions());
 	model.optimize(bestPoint);
 
 	pipeline::settings::preprocessor_settings_t psettings = model.getPreprocessorSettings();

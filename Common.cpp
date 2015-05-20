@@ -20,13 +20,13 @@ getLocalizerResult(const GroundTruth::LocalizerEvaluationResults &results) {
 	const size_t numFalsePositives = results.falsePositives.size();
 
 	const double recall =
-	    numGroundTruth ?
-	        (static_cast<double>(numTruePositives) / static_cast<double>(numGroundTruth)) :
-	        0.;
-	const double precision = (numTruePositives + numFalsePositives) ?
-	                             (static_cast<double>(numTruePositives) /
-	                              static_cast<double>(numTruePositives + numFalsePositives)) :
-	                             0.;
+	    numGroundTruth
+	        ? (static_cast<double>(numTruePositives) / static_cast<double>(numGroundTruth))
+	        : 0.;
+	const double precision = (numTruePositives + numFalsePositives)
+	                             ? (static_cast<double>(numTruePositives) /
+	                                static_cast<double>(numTruePositives + numFalsePositives))
+	                             : 0.;
 
 	const double fscore = getFScore(recall, precision, beta);
 

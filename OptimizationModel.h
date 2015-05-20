@@ -12,6 +12,8 @@ class OptimizationModel : public bayesopt::ContinuousModel {
 	OptimizationModel(bopt_params param, path_pair_t const &task,
 	                  limitsByParam const &limitsByParameter, size_t numDimensions);
 
+	virtual limitsByParam getDefaultLimits() const = 0;
+
 	template <typename ParamType, typename Settings>
 	void setValueFromQuery(Settings &settings, std::string const &paramName, double value) {
 		settings.template _setValue<ParamType>(

@@ -79,30 +79,7 @@ bopt_params getBoptParams(CommandLineOptions const &options) {
 void optimizeParameters(const path_pair_t &task, const bopt_params &params) {
 	Util::MeasureTimeRAII measureTime;
 
-	LocalizerModel::limitsByParam limitsByParameter;
-	{
-		using namespace pipeline::settings::Localizer;
-		limitsByParameter[Params::BINARY_THRESHOLD] = {10, 50};
-		limitsByParameter[Params::FIRST_DILATION_NUM_ITERATIONS] = {1, 5};
-		limitsByParameter[Params::FIRST_DILATION_SIZE] = {1, 10};
-		limitsByParameter[Params::EROSION_SIZE] = {10, 40};
-		limitsByParameter[Params::SECOND_DILATION_SIZE] = {1, 5};
-	}
-
-	{
-		using namespace pipeline::settings::Preprocessor;
-		limitsByParameter[Params::OPT_FRAME_SIZE] = {25, 500};
-		limitsByParameter[Params::OPT_AVERAGE_CONTRAST_VALUE] = {0, 255};
-		limitsByParameter[Params::OPT_AVERAGE_CONTRAST_VALUE] = {0, 255};
-		limitsByParameter[Params::COMB_MIN_SIZE] = {0, 150};
-		limitsByParameter[Params::COMB_MAX_SIZE] = {0, 150};
-		limitsByParameter[Params::COMB_THRESHOLD] = {0, 255};
-		limitsByParameter[Params::HONEY_STD_DEV] = {0, 255};
-		limitsByParameter[Params::HONEY_FRAME_SIZE] = {5, 50};
-		limitsByParameter[Params::HONEY_AVERAGE_VALUE] = {0, 255};
-	}
-
-	LocalizerModel model(params, task, limitsByParameter);
+	LocalizerModel model(params, task);
 
 	boost::numeric::ublas::vector<double> bestPoint(model.getNumDimensions());
 	model.optimize(bestPoint);
@@ -135,9 +112,7 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 
 	if (!boost::filesystem::is_directory(options.get().data)) {
-		std::cout << "Invalid input data path." << std::endl
-		          << std::endl;
-
+		std::cout << "Invalid input data path." << std::endl << std::endl;
 		return EXIT_FAILURE;
 	}
 

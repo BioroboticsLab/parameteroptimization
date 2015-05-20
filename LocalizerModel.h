@@ -33,6 +33,10 @@ class LocalizerModel : public OptimizationModel {
 	LocalizerModel(bopt_params param, path_pair_t const &task,
 	               limitsByParam const &limitsByParameter);
 
+	LocalizerModel(bopt_params param, const path_pair_t &task);
+
+	virtual limitsByParam getDefaultLimits() const override;
+
 	void applyQueryToSettings(const boost::numeric::ublas::vector<double> &query,
 	                          pipeline::settings::localizer_settings_t &lsettings,
 	                          pipeline::settings::preprocessor_settings_t &psettings);

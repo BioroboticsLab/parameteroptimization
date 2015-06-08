@@ -4,7 +4,7 @@
 
 namespace opt {
 
-LocalizerModel::LocalizerModel(bopt_params param, const path_pair_t &task,
+LocalizerModel::LocalizerModel(bopt_params param, const path_struct_t &task,
                                const LocalizerModel::limitsByParam &limitsByParameter)
     : OptimizationModel(param, task, limitsByParameter, getNumDimensions()) {
 	namespace settingspreprocessor = pipeline::settings::Preprocessor::Params;
@@ -12,12 +12,12 @@ LocalizerModel::LocalizerModel(bopt_params param, const path_pair_t &task,
 	_preprocessorSettings._setValue(settingspreprocessor::HONEY_ENABLED, true);
 }
 
-LocalizerModel::LocalizerModel(bopt_params param, const path_pair_t &task)
+LocalizerModel::LocalizerModel(bopt_params param, const path_struct_t &task)
 	: LocalizerModel(param, task, getDefaultLimits())
 {}
 
 OptimizationModel::limitsByParam LocalizerModel::getDefaultLimits() const {
-	LocalizerModel::limitsByParam limitsByParameter;
+	OptimizationModel::limitsByParam limitsByParameter;
 	{
 		using namespace pipeline::settings::Localizer;
 		limitsByParameter[Params::BINARY_THRESHOLD] = {10, 50};
@@ -69,7 +69,7 @@ void LocalizerModel::applyQueryToSettings(const boost::numeric::ublas::vector<do
 		setValueFromQuery<double>(psettings, Params::HONEY_AVERAGE_VALUE, query[idx++]);
 	}
 
-	assert(idx == (_numDimensions - 1));
+	assert(idx == getNumDimensions());
 }
 
 boost::optional<LocalizerResult>
@@ -84,11 +84,19 @@ LocalizerModel::evaluate(pipeline::settings::localizer_settings_t &lsettings,
 	taglist_t taglist = _localizer.process(std::move(img), std::move(imgPreprocessed));
 
 	_evaluation->evaluateLocalizer(0, taglist);
-	const auto result = getLocalizerResult(_evaluation->getLocalizerResults());
+	const auto localizerResult = _evaluation->getLocalizerResults();
+
+	const size_t numGroundTruth    = localizerResult.taggedGridsOnFrame.size();
+	const size_t numTruePositives  = localizerResult.truePositives.size();
+	const size_t numFalsePositives = localizerResult.falsePositives.size();
+
+	const auto optimizationResult = getOptimizationResult(numGroundTruth, numTruePositives,
+														  numFalsePositives, 2.);
+
 	_evaluation->reset();
 
-	if (result) {
-		return LocalizerResult(result.get(), psettings, lsettings);
+	if (optimizationResult) {
+		return LocalizerResult(optimizationResult.get(), psettings, lsettings);
 	}
 
 	return boost::optional<LocalizerResult>();
@@ -110,5 +118,10 @@ double LocalizerModel::evaluateSample(const boost::numeric::ublas::vector<double
 	}
 
 	return (1 - score);
+}
+
+bool LocalizerModel::checkReachability(const boost::numeric::ublas::vector<double> &query)
+{
+	return true;
 }
 }

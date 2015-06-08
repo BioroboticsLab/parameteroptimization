@@ -30,10 +30,10 @@ struct LocalizerResult : OptimizationResult {
 
 class LocalizerModel : public OptimizationModel {
   public:
-	LocalizerModel(bopt_params param, path_pair_t const &task,
+	LocalizerModel(bopt_params param, path_struct_t const &task,
 	               limitsByParam const &limitsByParameter);
 
-	LocalizerModel(bopt_params param, const path_pair_t &task);
+	LocalizerModel(bopt_params param, const path_struct_t &task);
 
 	virtual limitsByParam getDefaultLimits() const override;
 
@@ -46,8 +46,9 @@ class LocalizerModel : public OptimizationModel {
 	         pipeline::settings::preprocessor_settings_t &psettings);
 
 	virtual double evaluateSample(const boost::numeric::ublas::vector<double> &query) override;
+	virtual bool checkReachability(const boost::numeric::ublas::vector<double> &query) override;
 
-	virtual size_t getNumDimensions() const override { return 13; }
+	static size_t getNumDimensions() { return 13; }
 
 	pipeline::settings::preprocessor_settings_t getPreprocessorSettings() const {
 		return _preprocessorSettings;

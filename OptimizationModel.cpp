@@ -10,15 +10,15 @@
 
 namespace opt {
 
-OptimizationModel::OptimizationModel(bopt_params param, const path_pair_t &task,
+OptimizationModel::OptimizationModel(bopt_params param, const path_struct_t &task,
                                      const limitsByParam &limitsByParameter, size_t numDimensions)
     : bayesopt::ContinuousModel(numDimensions, param)
     , _limitsByParameter(limitsByParameter) {
-	_image = cv::imread(task.first.string());
+	_image = cv::imread(task.image.string());
 
 	Serialization::Data data;
 	{
-		std::ifstream is(task.second.string());
+		std::ifstream is(task.groundTruth.string());
 		cereal::JSONInputArchive ar(is);
 
 		// load serialized data into member .data

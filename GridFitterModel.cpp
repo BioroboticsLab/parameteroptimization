@@ -19,14 +19,14 @@ OptimizationModel::limitsByParam GridfitterModel::getDefaultLimits() const
 	OptimizationModel::limitsByParam limitsByParameter;
 
 	using namespace pipeline::settings::Gridfitter;
-	limitsByParameter[Params::ERR_FUNC_ALPHA_INNER] = {0., 10.};
-	limitsByParameter[Params::ERR_FUNC_ALPHA_OUTER] = {0., 10.};
-	limitsByParameter[Params::ERR_FUNC_ALPHA_VARIANCE] = {0., 10.};
-	limitsByParameter[Params::ERR_FUNC_ALPHA_OUTER_EDGE] = {0., 10.};
-	limitsByParameter[Params::ERR_FUNC_ALPHA_INNER_EDGE] = {0., 10.};
+	limitsByParameter[Params::ERR_FUNC_ALPHA_INNER] = {0., 1.};
+	limitsByParameter[Params::ERR_FUNC_ALPHA_OUTER] = {0., 1.};
+	limitsByParameter[Params::ERR_FUNC_ALPHA_VARIANCE] = {0., 1.};
+	limitsByParameter[Params::ERR_FUNC_ALPHA_OUTER_EDGE] = {0., 1.};
+	limitsByParameter[Params::ERR_FUNC_ALPHA_INNER_EDGE] = {0., 1.};
 
-	limitsByParameter[Params::ADAPTIVE_BLOCK_SIZE] = {3., 49.};
-	limitsByParameter[Params::ADAPTIVE_C] = {0., 10.};
+	limitsByParameter[Params::ADAPTIVE_BLOCK_SIZE] = {3., 61.};
+	limitsByParameter[Params::ADAPTIVE_C] = {0., 255.};
 
 	limitsByParameter[Params::GRADIENT_ERROR_THRESHOLD] = {0., 1.};
 

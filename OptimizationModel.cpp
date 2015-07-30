@@ -14,7 +14,7 @@ OptimizationModel::OptimizationModel(bopt_params param, const path_struct_t &tas
                                      const limitsByParam &limitsByParameter, size_t numDimensions)
     : bayesopt::ContinuousModel(numDimensions, param)
     , _limitsByParameter(limitsByParameter) {
-	_image = cv::imread(task.image.string());
+    _image = cv::imread(task.image.string(), CV_LOAD_IMAGE_GRAYSCALE);
 
 	Serialization::Data data;
 	{

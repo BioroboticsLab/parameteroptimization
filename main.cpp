@@ -172,7 +172,7 @@ void optimizeParameters(const path_struct_t &task, const CommandLineOptions &opt
 		pipeline::Localizer localizer;
 		localizer.loadSettings(lsettings);
 
-		cv::Mat image = cv::imread(task.image.string());
+        cv::Mat image = cv::imread(task.image.string(), CV_LOAD_IMAGE_GRAYSCALE);
 		cv::Mat imagePreprocessed = preprocessor.process(image);
 		taglist_t taglist = localizer.process(std::move(image), std::move(imagePreprocessed));
 
@@ -222,7 +222,7 @@ void optimizeParameters(const path_struct_t &task, const CommandLineOptions &opt
 		pipeline::EllipseFitter ellipseFitter;
 		ellipseFitter.loadSettings(esettings);
 
-		cv::Mat image = cv::imread(task.image.string());
+        cv::Mat image = cv::imread(task.image.string(), CV_LOAD_IMAGE_GRAYSCALE);
 		cv::Mat imagePreprocessed = preprocessor.process(image);
 		taglist_t taglistLocalizer = localizer.process(std::move(image), std::move(imagePreprocessed));
 		taglist_t taglist = taglistLocalizer;

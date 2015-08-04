@@ -8,8 +8,8 @@ LocalizerModel::LocalizerModel(bopt_params param, const path_struct_t &task,
                                const LocalizerModel::limitsByParam &limitsByParameter)
     : OptimizationModel(param, task, limitsByParameter, getNumDimensions()) {
 	namespace settingspreprocessor = pipeline::settings::Preprocessor::Params;
-	_preprocessorSettings._setValue(settingspreprocessor::COMB_ENABLED, true);
-	_preprocessorSettings._setValue(settingspreprocessor::HONEY_ENABLED, true);
+    _preprocessorSettings.setValue(settingspreprocessor::COMB_ENABLED, true);
+    _preprocessorSettings.setValue(settingspreprocessor::HONEY_ENABLED, true);
 }
 
 LocalizerModel::LocalizerModel(bopt_params param, const path_struct_t &task)

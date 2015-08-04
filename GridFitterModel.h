@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/settings.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/settings/GridFitterSettings.h"
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/GridFitter.h"
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Decoder.h"
 

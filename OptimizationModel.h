@@ -18,13 +18,13 @@ class OptimizationModel : public bayesopt::ContinuousModel {
 
 	template <typename ParamType, typename Settings>
 	void setValueFromQuery(Settings &settings, std::string const &paramName, double value) {
-		settings.template _setValue<ParamType>(
+        settings.template setValue<ParamType>(
 		    paramName, _limitsByParameter[paramName].getVal<ParamType>(value));
 	}
 
 	template <typename ParamType, typename Settings>
 	void setOddValueFromQuery(Settings &settings, std::string const &paramName, double value) {
-		settings.template _setValue<ParamType>(
+        settings.template setValue<ParamType>(
 			paramName, _limitsByParameter[paramName].getNearestOddVal<ParamType>(value));
 	}
 

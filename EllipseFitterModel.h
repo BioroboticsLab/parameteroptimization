@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/settings.h"
+#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/settings/EllipseFitterSettings.h"
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/Tag.h"
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/EllipseFitter.h"
 

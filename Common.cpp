@@ -24,7 +24,8 @@ getOptimizationResult(const size_t numGroundTruth, const size_t numTruePositives
 	const double fscore = getFScore(recall, precision, beta);
 
 	if (std::isnan(fscore)) {
-		return boost::optional<OptimizationResult>();
+        OptimizationResult result{0, 0, 0};
+        return result;
 	} else {
 		OptimizationResult result{fscore, recall, precision};
 		return result;

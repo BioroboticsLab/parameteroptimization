@@ -21,7 +21,9 @@ boost::optional<CommandLineOptions> getCommandLineOptions(int argc, char **argv)
 			("data", po::value<std::string>(), "data folder")
 			("n_init_samples", po::value<size_t>()->default_value(100))
 			("n_iterations", po::value<size_t>()->default_value(500))
-			("n_iter_relearn", po::value<size_t>()->default_value(25));
+            ("n_iter_relearn", po::value<size_t>()->default_value(25))
+            ("deeplocalizer_model_path", po::value<std::string>())
+            ("deeplocalizer_param_path", po::value<std::string>());
 
 	po::positional_options_description p;
 	p.add("data", 1);
@@ -38,8 +40,15 @@ boost::optional<CommandLineOptions> getCommandLineOptions(int argc, char **argv)
 		return boost::optional<CommandLineOptions>();
 	}
 
+    boost::optional<DeepLocalizerPaths> deeplocalizerPaths;
+    if (vm.count("deeplocalizer_model_path") && vm.count("deeplocalizer_param_path")) {
+        deeplocalizerPaths = { vm["deeplocalizer_model_path"].as<std::string>(),
+                               vm["deeplocalizer_param_path"].as<std::string>() };
+    }
+
 	CommandLineOptions options{vm["data"].as<std::string>(), vm["n_init_samples"].as<size_t>(),
-							   vm["n_iterations"].as<size_t>(), vm["n_iter_relearn"].as<size_t>()};
+                               vm["n_iterations"].as<size_t>(), vm["n_iter_relearn"].as<size_t>(),
+                               deeplocalizerPaths};
 
 	return options;
 }
@@ -101,8 +110,6 @@ bopt_params getBoptParams(CommandLineOptions const &options) {
 	return params;
 }
 
-#include <fstream>
-
 void optimizeParameters(const path_struct_t &task, const CommandLineOptions &options,
 						const bopt_params &params)
 {
@@ -121,13 +128,13 @@ void optimizeParameters(const path_struct_t &task, const CommandLineOptions &opt
 	auto optimizeLocalizer = [&]() {
 		Util::MeasureTimeRAII measureTime;
 
-		LocalizerModel model(params, task);
+        LocalizerModel model(params, task, options.deeplocalizer_paths);
 
 		boost::numeric::ublas::vector<double> bestPoint(model.getNumDimensions());
 		model.optimize(bestPoint);
 
 		pipeline::settings::preprocessor_settings_t psettings = model.getPreprocessorSettings();
-		pipeline::settings::localizer_settings_t lsettings;
+        pipeline::settings::localizer_settings_t lsettings = model.getLocalizerSettings();
 
 		model.applyQueryToSettings(bestPoint, lsettings, psettings);
 

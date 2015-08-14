@@ -11,9 +11,9 @@
 namespace opt {
 
 OptimizationModel::OptimizationModel(bopt_params param, const path_struct_t &task,
-                                     const limitsByParam &limitsByParameter, size_t numDimensions)
+                                     const ParameterMaps &parameterMaps, size_t numDimensions)
     : bayesopt::ContinuousModel(numDimensions, param)
-    , _limitsByParameter(limitsByParameter) {
+    , _parameterMaps(parameterMaps) {
     _image = cv::imread(task.image.string(), CV_LOAD_IMAGE_GRAYSCALE);
 
 	Serialization::Data data;
@@ -25,6 +25,15 @@ OptimizationModel::OptimizationModel(bopt_params param, const path_struct_t &tas
 		ar(data);
 	}
 
-	_evaluation = std::make_unique<GroundTruthEvaluation>(std::move(data));
+    _evaluation = std::make_unique<GroundTruthEvaluation>(std::move(data));
+}
+
+void OptimizationModel::addLimitToParameter(const std::string &param, limits_t limits,
+                                            ParameterMaps& parameterMaps)
+{
+    if (!parameterMaps.limitsByParameter.count(param)) {
+        parameterMaps.limitsByParameter[param] = limits;
+        parameterMaps.queryIdxByParameter[param] = parameterMaps.queryIdxByParameter.size() - 1;
+    }
 }
 }

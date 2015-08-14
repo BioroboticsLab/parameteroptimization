@@ -23,12 +23,15 @@ struct CommandLineOptions {
 	size_t n_iterations;
 	size_t n_iter_relearn;
 
+    boost::optional<DeepLocalizerPaths> deeplocalizer_paths;
+
 	CommandLineOptions(std::string const& data, size_t n_init_samples, size_t n_iterations,
-					   size_t n_iter_relearn)
+                       size_t n_iter_relearn, boost::optional<DeepLocalizerPaths> deeplocalizer_paths)
 		: data(data)
 		, n_init_samples(n_init_samples)
 		, n_iterations(n_iterations)
 		, n_iter_relearn(n_iter_relearn)
+        , deeplocalizer_paths(deeplocalizer_paths)
 	{}
 };
 

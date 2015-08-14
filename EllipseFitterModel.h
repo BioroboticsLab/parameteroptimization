@@ -27,12 +27,12 @@ class EllipseFitterModel : public OptimizationModel {
 public:
 	EllipseFitterModel(bopt_params param, path_struct_t const &task,
 					   std::vector<pipeline::Tag> const &taglist,
-					   limitsByParam const &limitsByParameter);
+                       ParameterMaps const &limitsByParameter);
 
 	EllipseFitterModel(bopt_params param, const path_struct_t &task,
 					   std::vector<pipeline::Tag> const &taglist);
 
-	virtual limitsByParam getDefaultLimits() const override;
+    virtual ParameterMaps getDefaultLimits() override;
 
 	void applyQueryToSettings(const boost::numeric::ublas::vector<double> &query,
 							  pipeline::settings::ellipsefitter_settings_t &settings);

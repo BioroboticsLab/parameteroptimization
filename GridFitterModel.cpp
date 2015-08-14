@@ -4,8 +4,8 @@
 
 namespace opt {
 
-GridfitterModel::GridfitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglistLocalizer, const std::vector<pipeline::Tag> &taglistEllipseFitter, const OptimizationModel::limitsByParam &limitsByParameter)
-	: OptimizationModel(param, task, limitsByParameter, getNumDimensions())
+GridfitterModel::GridfitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglistLocalizer, const std::vector<pipeline::Tag> &taglistEllipseFitter, const ParameterMaps &parameterMaps)
+    : OptimizationModel(param, task, parameterMaps, getNumDimensions())
 	, _taglistLocalizer(taglistLocalizer)
 	, _taglistEllipseFitter(taglistEllipseFitter)
 {}
@@ -14,9 +14,11 @@ GridfitterModel::GridfitterModel(bopt_params param, const path_struct_t &task, c
 	: GridfitterModel(param, task, taglistLocalizer, taglistEllipseFitter, getDefaultLimits())
 {}
 
-OptimizationModel::limitsByParam GridfitterModel::getDefaultLimits() const
+OptimizationModel::ParameterMaps GridfitterModel::getDefaultLimits()
 {
-	OptimizationModel::limitsByParam limitsByParameter;
+    OptimizationModel::ParameterMaps parameterMaps;
+    // TODO: use queryIdxByParameter
+    OptimizationModel::ParameterMaps::limitsByParam &limitsByParameter = parameterMaps.limitsByParameter;
 
 	using namespace pipeline::settings::Gridfitter;
 	limitsByParameter[Params::ERR_FUNC_ALPHA_INNER] = {0., 1.};
@@ -35,7 +37,7 @@ OptimizationModel::limitsByParam GridfitterModel::getDefaultLimits() const
 	limitsByParameter[Params::EPS_SCALE] = {std::numeric_limits<double>::min(), 10.};
 	limitsByParameter[Params::ALPHA] = {std::numeric_limits<double>::min(), 100.};
 
-	return limitsByParameter;
+    return parameterMaps;
 }
 
 void GridfitterModel::applyQueryToSettings(const boost::numeric::ublas::vector<double> &query, pipeline::settings::gridfitter_settings_t &settings)

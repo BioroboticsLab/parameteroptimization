@@ -2,8 +2,8 @@
 
 namespace opt {
 
-EllipseFitterModel::EllipseFitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglist, const OptimizationModel::limitsByParam &limitsByParameter)
-	: OptimizationModel(param, task, limitsByParameter, getNumDimensions())
+EllipseFitterModel::EllipseFitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglist, const ParameterMaps &parameterMaps)
+    : OptimizationModel(param, task, parameterMaps, getNumDimensions())
 	, _taglist(taglist)
 {}
 
@@ -11,9 +11,11 @@ EllipseFitterModel::EllipseFitterModel(bopt_params param, const path_struct_t &t
 	: EllipseFitterModel(param, task, taglist, getDefaultLimits())
 {}
 
-OptimizationModel::limitsByParam EllipseFitterModel::getDefaultLimits() const
+OptimizationModel::ParameterMaps EllipseFitterModel::getDefaultLimits()
 {
-	OptimizationModel::limitsByParam limitsByParameter;
+    OptimizationModel::ParameterMaps parameterMaps;
+    // TODO: use queryIdxByParameter
+    OptimizationModel::ParameterMaps::limitsByParam &limitsByParameter = parameterMaps.limitsByParameter;
 
 	using namespace pipeline::settings::EllipseFitter;
 	limitsByParameter[Params::CANNY_INITIAL_HIGH]    = {25, 150};
@@ -30,7 +32,7 @@ OptimizationModel::limitsByParam EllipseFitterModel::getDefaultLimits() const
 	limitsByParameter[Params::THRESHOLD_BEST_VOTE]   = {1500, 4000};
 	limitsByParameter[Params::THRESHOLD_VOTE]        = {500, 1400};
 
-	return limitsByParameter;
+    return parameterMaps;
 }
 
 void EllipseFitterModel::applyQueryToSettings(const boost::numeric::ublas::vector<double> &query, pipeline::settings::ellipsefitter_settings_t &settings)

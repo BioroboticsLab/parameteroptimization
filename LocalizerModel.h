@@ -31,11 +31,13 @@ struct LocalizerResult : OptimizationResult {
 class LocalizerModel : public OptimizationModel {
   public:
 	LocalizerModel(bopt_params param, path_struct_t const &task,
-	               limitsByParam const &limitsByParameter);
+                   boost::optional<DeepLocalizerPaths> const &deeplocalizerPaths,
+                   ParameterMaps const &limitsByParameter);
 
-	LocalizerModel(bopt_params param, const path_struct_t &task);
+    LocalizerModel(bopt_params param, const path_struct_t &task,
+                   boost::optional<DeepLocalizerPaths> const &deeplocalizerPaths);
 
-	virtual limitsByParam getDefaultLimits() const override;
+    virtual ParameterMaps getDefaultLimits() override;
 
 	void applyQueryToSettings(const boost::numeric::ublas::vector<double> &query,
 	                          pipeline::settings::localizer_settings_t &lsettings,
@@ -48,7 +50,7 @@ class LocalizerModel : public OptimizationModel {
 	virtual double evaluateSample(const boost::numeric::ublas::vector<double> &query) override;
 	virtual bool checkReachability(const boost::numeric::ublas::vector<double> &query) override;
 
-	static size_t getNumDimensions() { return 13; }
+    static size_t getNumDimensions();
 
 	pipeline::settings::preprocessor_settings_t getPreprocessorSettings() const {
 		return _preprocessorSettings;

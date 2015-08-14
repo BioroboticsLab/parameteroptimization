@@ -11,6 +11,15 @@
 
 namespace opt {
 
+struct DeepLocalizerPaths {
+    std::string model_path;
+    std::string param_path;
+
+    DeepLocalizerPaths(std::string const& model_path, std::string const& param_path)
+        : model_path(model_path), param_path(param_path)
+    {}
+};
+
 struct path_struct_t {
 	boost::filesystem::path image;
 	boost::filesystem::path groundTruth;

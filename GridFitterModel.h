@@ -29,13 +29,13 @@ class GridfitterModel : public OptimizationModel {
 	GridfitterModel(bopt_params param, path_struct_t const &task,
 				   std::vector<pipeline::Tag> const &taglistLocalizer,
 				   std::vector<pipeline::Tag> const &taglistEllipseFitter,
-				   limitsByParam const &limitsByParameter);
+                   ParameterMaps const &limitsByParameter);
 
 	GridfitterModel(bopt_params param, const path_struct_t &task,
 				   std::vector<pipeline::Tag> const &taglistLocalizer,
 				   std::vector<pipeline::Tag> const &taglistEllipseFitter);
 
-	virtual limitsByParam getDefaultLimits() const override;
+    virtual ParameterMaps getDefaultLimits() override;
 
 	void applyQueryToSettings(const boost::numeric::ublas::vector<double> &query,
 							  pipeline::settings::gridfitter_settings_t &settings);

@@ -11,9 +11,9 @@ double getFScore(const double recall, const double precision, const double beta)
 	        ((precision * recall) / (std::pow(beta, 2) * precision + recall)));
 }
 
-boost::optional<OptimizationResult>
-getOptimizationResult(const size_t numGroundTruth, const size_t numTruePositives,
-				   const size_t numFalsePositives, const double beta) {
+OptimizationResult getOptimizationResult(const size_t numGroundTruth, const size_t numTruePositives,
+                                         const size_t numFalsePositives, const double beta)
+{
 	const double recall = numGroundTruth ?
 				(static_cast<double>(numTruePositives) / static_cast<double>(numGroundTruth))
 				: 0.;

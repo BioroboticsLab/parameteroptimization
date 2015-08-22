@@ -1,13 +1,19 @@
 #include "LocalizerModel.h"
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/Tag.h"
+#include "StdioHandler.h"
+
+#include "source/tracking/algorithm/BeesBook/pipeline/util/ThreadPool.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/datastructure/Tag.h"
 
 namespace opt {
 
-LocalizerModel::LocalizerModel(bopt_params param, const path_struct_t &task,
+LocalizerModel::LocalizerModel(bopt_params param, const multiple_path_struct_t &task,
                                const boost::optional<DeepLocalizerPaths> &deeplocalizerPaths,
                                const ParameterMaps &parameterMaps)
-    : OptimizationModel(param, task, parameterMaps, getNumDimensions()) {
+    : OptimizationModel(param, task, parameterMaps, getNumDimensions())
+    , _preprocessor(std::make_unique<pipeline::Preprocessor>())
+    , _localizer(std::make_unique<pipeline::Localizer>())
+{
 
 	namespace settingspreprocessor = pipeline::settings::Preprocessor::Params;
     _preprocessorSettings.setValue(settingspreprocessor::COMB_ENABLED, true);
@@ -22,16 +28,28 @@ LocalizerModel::LocalizerModel(bopt_params param, const path_struct_t &task,
         _localizerSettings.setValue(settingslocalizer::TAG_SIZE, 100u);
     }
 #endif
+
+    _localizer->loadSettings(_localizerSettings);
+
+    /*
+    for (auto const& _ : _imagesByEvaluator)
+    {
+        _preprocessors.push_back(std::make_unique<pipeline::Preprocessor>());
+        _localizers.push_back(std::make_unique<pipeline::Localizer>());
+
+        _localizers.back()->loadSettings(_localizerSettings, _initialLocalizer.getCaffeNet());
+    }
+    */
 }
 
-LocalizerModel::LocalizerModel(bopt_params param, const path_struct_t &task, const boost::optional<DeepLocalizerPaths> &deeplocalizerPaths)
+LocalizerModel::LocalizerModel(bopt_params param, const multiple_path_struct_t &task, const boost::optional<DeepLocalizerPaths> &deeplocalizerPaths)
     : LocalizerModel(param, task, deeplocalizerPaths, getDefaultLimits())
 {}
 
 OptimizationModel::ParameterMaps LocalizerModel::getDefaultLimits() {
     ParameterMaps parameterMaps;
 
-    auto addLimitToParameterWrapper = [this, &parameterMaps](const std::string& paramName, limits_t limits)
+    auto addLimitToParameterWrapper = [&](const std::string& paramName, limits_t limits)
     {
         this->addLimitToParameter(paramName, limits, parameterMaps);
     };
@@ -102,31 +120,107 @@ void LocalizerModel::applyQueryToSettings(const boost::numeric::ublas::vector<do
 boost::optional<LocalizerResult>
 LocalizerModel::evaluate(pipeline::settings::localizer_settings_t &lsettings,
                          pipeline::settings::preprocessor_settings_t &psettings) {
-	_preprocessor.loadSettings(psettings);
-	_localizer.loadSettings(lsettings);
+    std::vector<OptimizationResult> results;
 
-	cv::Mat img(_image);
+    for (auto const& imagesByEvaluator : _imagesByEvaluator)
+    {
+        GroundTruthEvaluation* evaluator = imagesByEvaluator.first.get();
+        const std::vector<boost::filesystem::path>& imagesPaths = imagesByEvaluator.second;
 
-	cv::Mat imgPreprocessed = _preprocessor.process(img);
-	taglist_t taglist = _localizer.process(std::move(img), std::move(imgPreprocessed));
+        _preprocessor->loadSettings(psettings);
+        _localizer->loadSettings(lsettings);
 
-	_evaluation->evaluateLocalizer(0, taglist);
-	const auto localizerResult = _evaluation->getLocalizerResults();
+        size_t frameNumber = 0;
+        for (const boost::filesystem::path& imagePath : imagesPaths)
+        {
+            cv::Mat img(_imageByPath[imagePath]);
 
-	const size_t numGroundTruth    = localizerResult.taggedGridsOnFrame.size();
-	const size_t numTruePositives  = localizerResult.truePositives.size();
-	const size_t numFalsePositives = localizerResult.falsePositives.size();
+            cv::Mat imgPreprocessed = _preprocessor->process(img);
+            taglist_t taglist = _localizer->process(std::move(img), std::move(imgPreprocessed));
 
-	const auto optimizationResult = getOptimizationResult(numGroundTruth, numTruePositives,
-														  numFalsePositives, 2.);
+            evaluator->evaluateLocalizer(frameNumber, taglist);
 
-	_evaluation->reset();
+            const auto localizerResult = evaluator->getLocalizerResults();
 
-	if (optimizationResult) {
-		return LocalizerResult(optimizationResult.get(), psettings, lsettings);
-	}
+            const size_t numGroundTruth    = localizerResult.taggedGridsOnFrame.size();
+            const size_t numTruePositives  = localizerResult.truePositives.size();
+            const size_t numFalsePositives = localizerResult.falsePositives.size();
 
-	return boost::optional<LocalizerResult>();
+            results.push_back(getOptimizationResult(numGroundTruth, numTruePositives, numFalsePositives, 2.));
+
+            ++frameNumber;
+
+            evaluator->reset();
+        }
+    }
+
+    //static const size_t numThreads = 6;//std::thread::hardware_concurrency() ?
+//                std::thread::hardware_concurrency() : 1;
+    //ThreadPool pool(numThreads);
+
+    // ignore Caffe logging output
+    //StdErrHandler err([&](const char* line){
+    //});
+
+    /*
+    std::vector<std::future<std::vector<OptimizationResult>>> asyncResults;
+
+    size_t evaluatorNum = 0;
+    for (auto const& imagesByEvaluator : _imagesByEvaluator)
+    {
+        GroundTruthEvaluation* evaluator = imagesByEvaluator.first.get();
+        const std::vector<boost::filesystem::path>& imagesPaths = imagesByEvaluator.second;
+
+        std::unique_ptr<pipeline::Preprocessor>& preProcessorRef = _preprocessors.at(evaluatorNum);
+        std::unique_ptr<pipeline::Localizer>& localizerRef = _localizers.at(evaluatorNum);
+        pipeline::Preprocessor* preprocessor = preProcessorRef.get();
+        pipeline::Localizer* localizer = localizerRef.get();
+
+        preprocessor->loadSettings(psettings);
+        localizer->loadSettings(lsettings, _initialLocalizer.getCaffeNet());
+
+        asyncResults.emplace_back(pool.enqueue([preprocessor, localizer, evaluator, imagesPaths, this] {
+            std::vector<OptimizationResult> evaluatorResults;
+
+            size_t frameNumber = 0;
+            for (const boost::filesystem::path& imagePath : imagesPaths)
+            {
+                cv::Mat img(_imageByPath[imagePath]);
+
+                cv::Mat imgPreprocessed = preprocessor->process(img);
+                taglist_t taglist = localizer->process(std::move(img), std::move(imgPreprocessed));
+
+                evaluator->evaluateLocalizer(frameNumber, taglist);
+
+                const auto localizerResult = evaluator->getLocalizerResults();
+
+                const size_t numGroundTruth    = localizerResult.taggedGridsOnFrame.size();
+                const size_t numTruePositives  = localizerResult.truePositives.size();
+                const size_t numFalsePositives = localizerResult.falsePositives.size();
+
+                evaluatorResults.push_back(getOptimizationResult(numGroundTruth, numTruePositives, numFalsePositives, 2.));
+
+                ++frameNumber;
+
+                evaluator->reset();
+            }
+
+            return evaluatorResults;
+        }));
+
+        ++evaluatorNum;
+    }
+
+    std::vector<OptimizationResult> results;
+    for (auto && resultVector : asyncResults)
+    {
+        for (OptimizationResult const& result : resultVector.get()) {
+            results.push_back(result);
+        }
+    }
+    */
+
+    return LocalizerResult(results, psettings, lsettings);
 }
 
 double LocalizerModel::evaluateSample(const boost::numeric::ublas::vector<double> &query) {
@@ -163,4 +257,39 @@ size_t LocalizerModel::getNumDimensions()
     return 16;
 #endif
 }
+
+double getMeanFscore(const std::vector<OptimizationResult> &results) {
+    const double sum = std::accumulate(results.begin(), results.end(), 0.,
+                                       [](double& acc, OptimizationResult const& result)
+    {
+        std::cout << result.fscore << std::endl;
+        return acc + result.fscore;
+    });
+
+    assert(!results.empty());
+    return sum / results.size();
+}
+
+double getMeanPrecision(const std::vector<OptimizationResult> &results) {
+    const double sum = std::accumulate(results.begin(), results.end(), 0.,
+                                       [](double& acc, OptimizationResult const& result)
+    {
+        return acc + result.precision;
+    });
+
+    assert(!results.empty());
+    return sum / results.size();
+}
+
+double getMeanRecall(const std::vector<OptimizationResult> &results) {
+    const double sum = std::accumulate(results.begin(), results.end(), 0.,
+                                       [](double& acc, OptimizationResult const& result)
+    {
+        return acc + result.recall;
+    });
+
+    assert(!results.empty());
+    return sum / results.size();
+}
+
 }

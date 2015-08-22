@@ -1,3 +1,4 @@
+/*
 #include "EllipseFitterModel.h"
 
 namespace opt {
@@ -63,11 +64,11 @@ boost::optional<EllipseFitterResult> EllipseFitterModel::evaluate(pipeline::sett
 
 	_ellipseFitter.loadSettings(settings);
 
-	_evaluation->evaluateLocalizer(0, tagListCopy);
+    _evaluators->evaluateLocalizer(0, tagListCopy);
 	tagListCopy = _ellipseFitter.process(std::move(tagListCopy));
-	_evaluation->evaluateEllipseFitter(tagListCopy);
+    _evaluators->evaluateEllipseFitter(tagListCopy);
 
-	const auto ellipseFitterResult = _evaluation->getEllipsefitterResults();
+    const auto ellipseFitterResult = _evaluators->getEllipsefitterResults();
 
 	const size_t numGroundTruth    = ellipseFitterResult.taggedGridsOnFrame.size();
 	const size_t numTruePositives  = ellipseFitterResult.truePositives.size();
@@ -80,7 +81,7 @@ boost::optional<EllipseFitterResult> EllipseFitterModel::evaluate(pipeline::sett
 	const auto optimizationResult = getOptimizationResult(numGroundTruth, numTruePositives,
 														  numFalsePositives, 0.5);
 
-	_evaluation->reset();
+    _evaluators->reset();
 
 	if (optimizationResult) {
 		return EllipseFitterResult(optimizationResult.get(), settings);
@@ -130,3 +131,5 @@ bool EllipseFitterModel::checkReachability(const boost::numeric::ublas::vector<d
 	return true;
 }
 }
+
+*/

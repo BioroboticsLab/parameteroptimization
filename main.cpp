@@ -10,6 +10,12 @@
 #include "GridFitterModel.h"
 #include "StdioHandler.h"
 
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/archives/json.hpp>
+#include <cereal/types/vector.hpp>
+
+#include "source/tracking/serialization/SerializationData.h"
+
 namespace opt {
 
 boost::optional<CommandLineOptions> getCommandLineOptions(int argc, char **argv) {
@@ -22,6 +28,7 @@ boost::optional<CommandLineOptions> getCommandLineOptions(int argc, char **argv)
 			("n_init_samples", po::value<size_t>()->default_value(100))
 			("n_iterations", po::value<size_t>()->default_value(500))
             ("n_iter_relearn", po::value<size_t>()->default_value(25))
+            ("optimize_mean", po::value<bool>()->default_value(false), "optimize mean of scores for all files")
             ("deeplocalizer_model_path", po::value<std::string>())
             ("deeplocalizer_param_path", po::value<std::string>());
 
@@ -48,18 +55,16 @@ boost::optional<CommandLineOptions> getCommandLineOptions(int argc, char **argv)
 
 	CommandLineOptions options{vm["data"].as<std::string>(), vm["n_init_samples"].as<size_t>(),
                                vm["n_iterations"].as<size_t>(), vm["n_iter_relearn"].as<size_t>(),
-                               deeplocalizerPaths};
+                               deeplocalizerPaths, vm["optimize_mean"].as<bool>()};
 
 	return options;
 }
 
-task_vector_t getTasks(boost::filesystem::path dataFolder) {
+multiple_path_struct_t getTasks(boost::filesystem::path dataFolder) {
 	namespace fs = boost::filesystem;
 
-	task_vector_t groundTruthByImagePaths;
-
 	std::set<fs::path> files;
-	std::copy(fs::directory_iterator(dataFolder), fs::directory_iterator(),
+    std::copy(fs::recursive_directory_iterator(dataFolder), fs::recursive_directory_iterator(),
 	          std::inserter(files, files.begin()));
 
 	auto addOptionalFile = [](fs::path path, boost::optional<fs::path>& optional) {
@@ -68,33 +73,61 @@ task_vector_t getTasks(boost::filesystem::path dataFolder) {
 		}
 	};
 
-	for (const fs::path entry : files) {
+
+    multiple_path_struct_t pstruct;
+    pstruct.outputFolder = dataFolder;
+
+    for (const fs::path entry : files) {
+
 		if (fs::is_regular_file(entry)) {
-			if (entry.extension() == ".jpeg") {
+
+            if (entry.extension() == ".tdat") {
 				fs::path groundTruthPath(entry);
-				groundTruthPath.replace_extension(".tdat");
+
 				if (fs::is_regular_file(groundTruthPath)) {
-					fs::path folder = entry.parent_path() / getDateTime();
-					if (fs::create_directory(folder)) {
-						fs::path logfile = folder / "output.log";
+                    Serialization::Data data;
+                    {
+                        std::ifstream is(groundTruthPath.string());
+                        cereal::JSONInputArchive ar(is);
 
-						path_struct_t pstruct {entry, groundTruthPath, folder, logfile};
-						addOptionalFile(entry.parent_path() / "psettings.json", pstruct.preprocessorSettings);
-						addOptionalFile(entry.parent_path() / "lsettings.json", pstruct.localizerSettings);
-						addOptionalFile(entry.parent_path() / "esettings.json", pstruct.ellipseFitterSettings);
-						addOptionalFile(entry.parent_path() / "gsettings.json", pstruct.gridFitterSettings);
+                        // load serialized data
+                        ar(data);
+                    }
 
-						groundTruthByImagePaths.push_back(pstruct);
-					} else {
-						std::cerr << "Unable to create output directory: " << folder.string() << std::endl;
-						exit(EXIT_FAILURE);
-					}
-				}
-			}
-		}
-	}
+                    std::vector<std::string> const& fileNames = data.getFilenames();
+                    std::vector<fs::path> filePaths;
 
-	return groundTruthByImagePaths;
+                    for (std::string const& path : fileNames) {
+                        fs::path imagePath = groundTruthPath.parent_path() / path;
+                        imagePath.replace_extension(".jpeg");
+
+                        if (fs::is_regular_file(imagePath)) {
+                            filePaths.push_back(imagePath);
+                        }
+                    }
+
+                    pstruct.imageFilesByGroundTruthFile.insert({groundTruthPath, filePaths});
+                }
+            }
+        }
+    }
+
+    const fs::path folder = dataFolder / getDateTime();
+
+    if (fs::create_directory(folder)) {
+            pstruct.logfile = folder / "output.log";
+
+            addOptionalFile(dataFolder / "psettings.json", pstruct.preprocessorSettings);
+            addOptionalFile(dataFolder / "lsettings.json", pstruct.localizerSettings);
+            addOptionalFile(dataFolder / "esettings.json", pstruct.ellipseFitterSettings);
+            addOptionalFile(dataFolder / "gsettings.json", pstruct.gridFitterSettings);
+
+    } else {
+            std::cerr << "Unable to create output directory: " << folder.string() << std::endl;
+            exit(EXIT_FAILURE);
+    }
+
+    return pstruct;
 }
 
 bopt_params getBoptParams(CommandLineOptions const &options) {
@@ -110,7 +143,7 @@ bopt_params getBoptParams(CommandLineOptions const &options) {
 	return params;
 }
 
-void optimizeParameters(const path_struct_t &task, const CommandLineOptions &options,
+void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOptions &options,
 						const bopt_params &params)
 {
 	std::ofstream logging(task.logfile.string());
@@ -171,6 +204,7 @@ void optimizeParameters(const path_struct_t &task, const CommandLineOptions &opt
 	psettings.writeToJson((task.outputFolder / "psettings.json").string());
 	lsettings.writeToJson((task.outputFolder / "lsettings.json").string());
 
+    /*
 	auto optimizeEllipseFitter = [&]() {
 		Util::MeasureTimeRAII measureTime;
 
@@ -272,11 +306,17 @@ void optimizeParameters(const path_struct_t &task, const CommandLineOptions &opt
 
 	gsettings.writeToJson((task.outputFolder / "gsettings.json").string());
 
+    */
+
 	boost::property_tree::ptree pt;
 	psettings.addToPTree(pt);
 	lsettings.addToPTree(pt);
+
+    /*
 	esettings.addToPTree(pt);
 	gsettings.addToPTree(pt);
+    */
+
 	boost::property_tree::write_json((task.outputFolder / "settings.json").string(), pt);
 }
 
@@ -305,12 +345,24 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	task_vector_t tasks = getTasks(options.get().data);
-	bopt_params boptParams = getBoptParams(options.get());
+    bopt_params boptParams = getBoptParams(options.get());
 
-	for (const path_struct_t &task : tasks) {
-		optimizeParameters(task, options.get(), boptParams);
-	}
+    if ((*options).optimize_mean) {
+        multiple_path_struct_t task = getTasks(options.get().data);
+
+        optimizeParameters(task, options.get(), boptParams);
+    } else {
+        // TODO
+        /*
+        task_vector_t tasks = getTasks(options.get().data);
+        bopt_params boptParams = getBoptParams(options.get());
+
+        for (const path_struct_t &task : tasks) {
+                optimizeParameters(task, options.get(), boptParams);
+        }
+        */
+        return EXIT_FAILURE;
+    }
 
 	return EXIT_SUCCESS;
 }

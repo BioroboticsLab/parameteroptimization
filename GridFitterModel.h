@@ -1,3 +1,5 @@
+/*
+
 #pragma once
 
 #include "Common.h"
@@ -56,3 +58,5 @@ class GridfitterModel : public OptimizationModel {
 	std::vector<pipeline::Tag> _taglistEllipseFitter;
 };
 }
+
+*/

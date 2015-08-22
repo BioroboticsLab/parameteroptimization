@@ -1,3 +1,5 @@
+/*
+
 #include "GridFitterModel.h"
 
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/Tag.h"
@@ -71,18 +73,18 @@ boost::optional<GridfitterResult> GridfitterModel::evaluate(pipeline::settings::
 	_gridfitter.loadSettings(settings);
 
 	// TODO: ref problem when using taglistLocalizer
-	_evaluation->evaluateLocalizer(0, tagListCopy);
-	_evaluation->evaluateEllipseFitter(tagListCopy);
+    _evaluators->evaluateLocalizer(0, tagListCopy);
+    _evaluators->evaluateEllipseFitter(tagListCopy);
 	tagListCopy = _gridfitter.process(std::move(tagListCopy));
-	_evaluation->evaluateGridFitter();
+    _evaluators->evaluateGridFitter();
 	tagListCopy = _decoder.process(std::move(tagListCopy));
-	_evaluation->evaluateDecoder();
+    _evaluators->evaluateDecoder();
 
-	const auto decoderResult = _evaluation->getDecoderResults();
+    const auto decoderResult = _evaluators->getDecoderResults();
 
 	const boost::optional<double> avgHamming = decoderResult.getAverageHammingDistanceNormalized();
 
-	_evaluation->reset();
+    _evaluators->reset();
 
 	if (avgHamming) {
 		return GridfitterResult(avgHamming.get(), settings);
@@ -113,12 +115,8 @@ double GridfitterModel::evaluateSample(const boost::numeric::ublas::vector<doubl
 bool GridfitterModel::checkReachability(const boost::numeric::ublas::vector<double> &query)
 {
 	return true;
-	/*
-	//TODO
-	const int adC = _limitsByParameter[pipeline::settings::Gridfitter::Params::ADAPTIVE_BLOCK_SIZE].getVal<int>(query[5]);
-
-	return (adC % 2);
-	*/
 }
 
 }
+
+*/

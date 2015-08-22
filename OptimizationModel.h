@@ -17,7 +17,7 @@ class OptimizationModel : public bayesopt::ContinuousModel {
         queryIdxByParam queryIdxByParameter;
     };
 
-	OptimizationModel(bopt_params param, path_struct_t const &task,
+    OptimizationModel(bopt_params param, multiple_path_struct_t const &task,
                       ParameterMaps const &limitsByParameter, size_t numDimensions);
 
     virtual ParameterMaps getDefaultLimits() = 0;
@@ -48,8 +48,8 @@ class OptimizationModel : public bayesopt::ContinuousModel {
 	virtual bool checkReachability(const boost::numeric::ublas::vector<double> &query) override = 0;
 
   protected:
-	cv::Mat _image;
-	std::unique_ptr<GroundTruthEvaluation> _evaluation;
+    std::map<boost::filesystem::path, cv::Mat> _imageByPath;
+    std::map<std::unique_ptr<GroundTruthEvaluation>, std::vector<boost::filesystem::path>> _imagesByEvaluator;
     ParameterMaps _parameterMaps;
 };
 }

@@ -3,11 +3,15 @@
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/settings/LocalizerSettings.h"
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Preprocessor.h"
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Localizer.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/settings/LocalizerSettings.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/Preprocessor.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/Localizer.h"
 
 namespace opt {
+
+double getMeanFscore(std::vector<OptimizationResult> const& results);
+double getMeanPrecision(std::vector<OptimizationResult> const& results);
+double getMeanRecall(std::vector<OptimizationResult> const& results);
 
 struct LocalizerResult : OptimizationResult {
 	LocalizerResult(double fscore, double recall, double precision,
@@ -24,17 +28,27 @@ struct LocalizerResult : OptimizationResult {
 	    , psettings(psettings)
 	    , lsettings(lsettings) {}
 
+    LocalizerResult(std::vector<OptimizationResult> const &oresults,
+                    pipeline::settings::preprocessor_settings_t const &psettings,
+                    pipeline::settings::localizer_settings_t const &lsettings)
+        : OptimizationResult(getMeanFscore(oresults),
+                             getMeanRecall(oresults),
+                             getMeanPrecision(oresults))
+        , psettings(psettings)
+        , lsettings(lsettings)
+    {}
+
 	pipeline::settings::preprocessor_settings_t psettings;
 	pipeline::settings::localizer_settings_t lsettings;
 };
 
 class LocalizerModel : public OptimizationModel {
   public:
-	LocalizerModel(bopt_params param, path_struct_t const &task,
+    LocalizerModel(bopt_params param, multiple_path_struct_t const &task,
                    boost::optional<DeepLocalizerPaths> const &deeplocalizerPaths,
                    ParameterMaps const &limitsByParameter);
 
-    LocalizerModel(bopt_params param, const path_struct_t &task,
+    LocalizerModel(bopt_params param, const multiple_path_struct_t &task,
                    boost::optional<DeepLocalizerPaths> const &deeplocalizerPaths);
 
     virtual ParameterMaps getDefaultLimits() override;
@@ -60,10 +74,15 @@ class LocalizerModel : public OptimizationModel {
 	}
 
   private:
-	pipeline::settings::preprocessor_settings_t _preprocessorSettings;
-	pipeline::Preprocessor _preprocessor;
+    pipeline::settings::preprocessor_settings_t _preprocessorSettings;
+    pipeline::settings::localizer_settings_t _localizerSettings;
 
-	pipeline::settings::localizer_settings_t _localizerSettings;
-	pipeline::Localizer _localizer;
+    std::unique_ptr<pipeline::Preprocessor> _preprocessor;
+    std::unique_ptr<pipeline::Localizer> _localizer;
+
+    //pipeline::Localizer _initialLocalizer;
+
+    //std::vector<std::unique_ptr<pipeline::Preprocessor>> _preprocessors;
+    //std::vector<std::unique_ptr<pipeline::Localizer>> _localizers;
 };
 }

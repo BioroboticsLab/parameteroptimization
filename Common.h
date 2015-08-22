@@ -7,7 +7,7 @@
 #include <boost/optional.hpp>
 
 #include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/GroundTruthEvaluator.h"
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/util/Util.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/util/Util.h"
 
 namespace opt {
 
@@ -39,6 +39,29 @@ struct path_struct_t {
 	{}
 };
 typedef std::vector<path_struct_t> task_vector_t;
+
+struct multiple_path_struct_t {
+    typedef std::vector<boost::filesystem::path> path_vector_t;
+
+    std::map<boost::filesystem::path, path_vector_t> imageFilesByGroundTruthFile;
+
+    boost::filesystem::path outputFolder;
+    boost::filesystem::path logfile;
+
+    boost::optional<boost::filesystem::path> preprocessorSettings;
+    boost::optional<boost::filesystem::path> localizerSettings;
+    boost::optional<boost::filesystem::path> ellipseFitterSettings;
+    boost::optional<boost::filesystem::path> gridFitterSettings;
+
+    multiple_path_struct_t() {}
+    multiple_path_struct_t(std::map<boost::filesystem::path, path_vector_t> const& imageFilesByGroundTruthFile,
+                  boost::filesystem::path const& outputFolder,
+                  boost::filesystem::path const& logfile)
+        : imageFilesByGroundTruthFile(imageFilesByGroundTruthFile)
+        , outputFolder(outputFolder)
+        , logfile(logfile)
+    {}
+};
 
 struct OptimizationResult {
 	OptimizationResult(double fscore, double recall, double precision)
@@ -81,6 +104,5 @@ bool operator<(const OptimizationResult &a, const OptimizationResult &b);
 
 double getFScore(const double recall, const double precision, const double beta);
 
-boost::optional<OptimizationResult>
-getOptimizationResult(const size_t numGroundTruth, const size_t numTruePositives, const size_t numFalsePositives, const double beta);
+OptimizationResult getOptimizationResult(const size_t numGroundTruth, const size_t numTruePositives, const size_t numFalsePositives, const double beta);
 }

@@ -10,22 +10,36 @@
 
 namespace opt {
 
-OptimizationModel::OptimizationModel(bopt_params param, const path_struct_t &task,
+OptimizationModel::OptimizationModel(bopt_params param, const multiple_path_struct_t &task,
                                      const ParameterMaps &parameterMaps, size_t numDimensions)
     : bayesopt::ContinuousModel(numDimensions, param)
-    , _parameterMaps(parameterMaps) {
-    _image = cv::imread(task.image.string(), CV_LOAD_IMAGE_GRAYSCALE);
+    , _parameterMaps(parameterMaps)
+{
 
-	Serialization::Data data;
-	{
-		std::ifstream is(task.groundTruth.string());
-		cereal::JSONInputArchive ar(is);
+    for (auto const& keyValuePair : task.imageFilesByGroundTruthFile)
+    {
+        boost::filesystem::path groundTruthPath = keyValuePair.first;
 
-		// load serialized data into member .data
-		ar(data);
-	}
+        Serialization::Data data;
+        {
+            std::ifstream is(groundTruthPath.string());
+            cereal::JSONInputArchive ar(is);
 
-    _evaluation = std::make_unique<GroundTruthEvaluation>(std::move(data));
+            // load serialized data into member .data
+            ar(data);
+        }
+
+        for (boost::filesystem::path const& imagePath : keyValuePair.second)
+        {
+            const cv::Mat image = cv::imread(imagePath.string(), CV_LOAD_IMAGE_GRAYSCALE);
+
+            _imageByPath.insert({imagePath, image});
+        }
+
+        _imagesByEvaluator.insert(std::make_pair(
+                               std::make_unique<GroundTruthEvaluation>(std::move(data)),
+                               keyValuePair.second));
+    }
 }
 
 void OptimizationModel::addLimitToParameter(const std::string &param, limits_t limits,

@@ -1,3 +1,5 @@
+/*
+
 #pragma once
 
 #include "Common.h"
@@ -56,3 +58,5 @@ public:
 	std::vector<pipeline::Tag> _taglist;
 };
 }
+
+*/

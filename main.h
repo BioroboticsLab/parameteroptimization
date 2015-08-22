@@ -25,13 +25,17 @@ struct CommandLineOptions {
 
     boost::optional<DeepLocalizerPaths> deeplocalizer_paths;
 
+    bool optimize_mean;
+
 	CommandLineOptions(std::string const& data, size_t n_init_samples, size_t n_iterations,
-                       size_t n_iter_relearn, boost::optional<DeepLocalizerPaths> deeplocalizer_paths)
+                       size_t n_iter_relearn, boost::optional<DeepLocalizerPaths> deeplocalizer_paths,
+                       bool optimize_mean)
 		: data(data)
 		, n_init_samples(n_init_samples)
 		, n_iterations(n_iterations)
 		, n_iter_relearn(n_iter_relearn)
         , deeplocalizer_paths(deeplocalizer_paths)
+        , optimize_mean(optimize_mean)
 	{}
 };
 
@@ -39,11 +43,15 @@ std::string getDateTime();
 
 boost::optional<CommandLineOptions> getCommandLineOptions(int argc, char **argv);
 
-task_vector_t getTasks(boost::filesystem::path dataFolder);
+opt::multiple_path_struct_t getTasks(boost::filesystem::path dataFolder);
 
 bopt_params getBoptParams(CommandLineOptions const &options);
 
+void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOptions &options, const bopt_params &params);
+/*
 void optimizeParameters(const path_struct_t &task, const CommandLineOptions &options, const bopt_params &params);
+*/
+
 }
 
 int main(int argc, char **argv);

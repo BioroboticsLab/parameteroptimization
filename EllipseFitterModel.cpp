@@ -1,14 +1,13 @@
-/*
 #include "EllipseFitterModel.h"
 
 namespace opt {
 
-EllipseFitterModel::EllipseFitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglist, const ParameterMaps &parameterMaps)
+EllipseFitterModel::EllipseFitterModel(bopt_params param, const multiple_path_struct_t &task, const TaglistByImage &taglist, const ParameterMaps &parameterMaps)
     : OptimizationModel(param, task, parameterMaps, getNumDimensions())
-	, _taglist(taglist)
+    , _taglistByImage(taglist)
 {}
 
-EllipseFitterModel::EllipseFitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglist)
+EllipseFitterModel::EllipseFitterModel(bopt_params param, const multiple_path_struct_t &task, const TaglistByImage &taglist)
 	: EllipseFitterModel(param, task, taglist, getDefaultLimits())
 {}
 
@@ -60,34 +59,39 @@ void EllipseFitterModel::applyQueryToSettings(const boost::numeric::ublas::vecto
 
 boost::optional<EllipseFitterResult> EllipseFitterModel::evaluate(pipeline::settings::ellipsefitter_settings_t &settings)
 {
-	std::vector<pipeline::Tag> tagListCopy(_taglist);
+    std::vector<OptimizationResult> results;
 
-	_ellipseFitter.loadSettings(settings);
+    for (auto const& imagesByEvaluator : _imagesByEvaluator)
+    {
+        GroundTruthEvaluation* evaluator = imagesByEvaluator.first.get();
+        const std::vector<boost::filesystem::path>& imagesPaths = imagesByEvaluator.second;
 
-    _evaluators->evaluateLocalizer(0, tagListCopy);
-	tagListCopy = _ellipseFitter.process(std::move(tagListCopy));
-    _evaluators->evaluateEllipseFitter(tagListCopy);
+        _ellipseFitter.loadSettings(settings);
 
-    const auto ellipseFitterResult = _evaluators->getEllipsefitterResults();
+        size_t frameNumber = 0;
+        for (const boost::filesystem::path& imagePath : imagesPaths)
+        {
+            std::vector<pipeline::Tag> tagListCopy(_taglistByImage[imagePath]);
 
-	const size_t numGroundTruth    = ellipseFitterResult.taggedGridsOnFrame.size();
-	const size_t numTruePositives  = ellipseFitterResult.truePositives.size();
-	const size_t numFalsePositives = ellipseFitterResult.falsePositives.size();
+            evaluator->evaluateLocalizer(0, tagListCopy);
+            tagListCopy = _ellipseFitter.process(std::move(tagListCopy));
+            evaluator->evaluateEllipseFitter(tagListCopy);
 
-	std::cout << numGroundTruth << std::endl;
-	std::cout << numTruePositives << std::endl;
-	std::cout << numFalsePositives << std::endl;
+            const auto ellipseFitterResult = evaluator->getEllipsefitterResults();
 
-	const auto optimizationResult = getOptimizationResult(numGroundTruth, numTruePositives,
-														  numFalsePositives, 0.5);
+            const size_t numGroundTruth    = ellipseFitterResult.taggedGridsOnFrame.size();
+            const size_t numTruePositives  = ellipseFitterResult.truePositives.size();
+            const size_t numFalsePositives = ellipseFitterResult.falsePositives.size();
 
-    _evaluators->reset();
+            results.push_back(getOptimizationResult(numGroundTruth, numTruePositives, numFalsePositives, 0.5));
 
-	if (optimizationResult) {
-		return EllipseFitterResult(optimizationResult.get(), settings);
-	}
+            ++frameNumber;
 
-	return boost::optional<EllipseFitterResult>();
+            evaluator->reset();
+        }
+    }
+
+    return EllipseFitterResult(results, settings);
 }
 
 double EllipseFitterModel::evaluateSample(const boost::numeric::ublas::vector<double> &query)
@@ -131,5 +135,3 @@ bool EllipseFitterModel::checkReachability(const boost::numeric::ublas::vector<d
 	return true;
 }
 }
-
-*/

@@ -9,10 +9,6 @@
 
 namespace opt {
 
-double getMeanFscore(std::vector<OptimizationResult> const& results);
-double getMeanPrecision(std::vector<OptimizationResult> const& results);
-double getMeanRecall(std::vector<OptimizationResult> const& results);
-
 struct LocalizerResult : OptimizationResult {
 	LocalizerResult(double fscore, double recall, double precision,
 	                pipeline::settings::preprocessor_settings_t const &psettings,
@@ -79,10 +75,5 @@ class LocalizerModel : public OptimizationModel {
 
     std::unique_ptr<pipeline::Preprocessor> _preprocessor;
     std::unique_ptr<pipeline::Localizer> _localizer;
-
-    //pipeline::Localizer _initialLocalizer;
-
-    //std::vector<std::unique_ptr<pipeline::Preprocessor>> _preprocessors;
-    //std::vector<std::unique_ptr<pipeline::Localizer>> _localizers;
 };
 }

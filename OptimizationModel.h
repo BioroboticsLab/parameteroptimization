@@ -7,6 +7,11 @@
 #include <bayesopt/bayesopt.hpp>
 
 namespace opt {
+
+double getMeanFscore(std::vector<OptimizationResult> const& results);
+double getMeanPrecision(std::vector<OptimizationResult> const& results);
+double getMeanRecall(std::vector<OptimizationResult> const& results);
+
 class OptimizationModel : public bayesopt::ContinuousModel {
   public:
     struct ParameterMaps {
@@ -16,6 +21,8 @@ class OptimizationModel : public bayesopt::ContinuousModel {
         limitsByParam limitsByParameter;
         queryIdxByParam queryIdxByParameter;
     };
+
+    typedef std::map<boost::filesystem::path, std::vector<pipeline::Tag>> TaglistByImage;
 
     OptimizationModel(bopt_params param, multiple_path_struct_t const &task,
                       ParameterMaps const &limitsByParameter, size_t numDimensions);

@@ -204,7 +204,6 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 	psettings.writeToJson((task.outputFolder / "psettings.json").string());
 	lsettings.writeToJson((task.outputFolder / "lsettings.json").string());
 
-    /*
 	auto optimizeEllipseFitter = [&]() {
 		Util::MeasureTimeRAII measureTime;
 
@@ -213,11 +212,20 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 		pipeline::Localizer localizer;
 		localizer.loadSettings(lsettings);
 
-        cv::Mat image = cv::imread(task.image.string(), CV_LOAD_IMAGE_GRAYSCALE);
-		cv::Mat imagePreprocessed = preprocessor.process(image);
-		taglist_t taglist = localizer.process(std::move(image), std::move(imagePreprocessed));
+        OptimizationModel::TaglistByImage taglistByImage;
+        for (auto const& groundTruthImagePair : task.imageFilesByGroundTruthFile) {
+            const auto& imagePathVector = groundTruthImagePair.second;
 
-		EllipseFitterModel model(params, task, taglist);
+            for (boost::filesystem::path const& imagePath : imagePathVector) {
+                cv::Mat image = cv::imread(imagePath.string(), CV_LOAD_IMAGE_GRAYSCALE);
+                cv::Mat imagePreprocessed = preprocessor.process(image);
+                taglist_t taglist = localizer.process(std::move(image), std::move(imagePreprocessed));
+
+                taglistByImage.insert({imagePath, taglist});
+            }
+        }
+
+        EllipseFitterModel model(params, task, taglistByImage);
 
 		boost::numeric::ublas::vector<double> bestPoint(model.getNumDimensions());
 		model.optimize(bestPoint);
@@ -263,16 +271,26 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 		pipeline::EllipseFitter ellipseFitter;
 		ellipseFitter.loadSettings(esettings);
 
-        cv::Mat image = cv::imread(task.image.string(), CV_LOAD_IMAGE_GRAYSCALE);
-		cv::Mat imagePreprocessed = preprocessor.process(image);
-		taglist_t taglistLocalizer = localizer.process(std::move(image), std::move(imagePreprocessed));
-		taglist_t taglist = taglistLocalizer;
+        OptimizationModel::TaglistByImage taglistByImage;
+        for (auto const& groundTruthImagePair : task.imageFilesByGroundTruthFile) {
+            const auto& imagePathVector = groundTruthImagePair.second;
 
-		taglist = ellipseFitter.process(std::move(taglist));
-		taglist.erase(
-					std::remove_if(taglist.begin(), taglist.end(),
-								   [](pipeline::Tag const& tag) { return tag.getCandidatesConst().empty(); }));
-		GridfitterModel model(params, task, taglistLocalizer, taglist);
+            for (boost::filesystem::path const& imagePath : imagePathVector) {
+                cv::Mat image = cv::imread(imagePath.string(), CV_LOAD_IMAGE_GRAYSCALE);
+                cv::Mat imagePreprocessed = preprocessor.process(image);
+                taglist_t taglistLocalizer = localizer.process(std::move(image), std::move(imagePreprocessed));
+
+                taglist_t taglist = taglistLocalizer;
+                taglist = ellipseFitter.process(std::move(taglist));
+                taglist.erase(
+                            std::remove_if(taglist.begin(), taglist.end(),
+                                           [](pipeline::Tag const& tag) { return tag.getCandidatesConst().empty(); }));
+
+                taglistByImage.insert({imagePath, taglist});
+            }
+        }
+
+        GridfitterModel model(params, task, taglistByImage);
 
 		boost::numeric::ublas::vector<double> bestPoint(model.getNumDimensions());
 		model.optimize(bestPoint);
@@ -306,16 +324,11 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 
 	gsettings.writeToJson((task.outputFolder / "gsettings.json").string());
 
-    */
-
 	boost::property_tree::ptree pt;
 	psettings.addToPTree(pt);
 	lsettings.addToPTree(pt);
-
-    /*
 	esettings.addToPTree(pt);
 	gsettings.addToPTree(pt);
-    */
 
 	boost::property_tree::write_json((task.outputFolder / "settings.json").string(), pt);
 }
@@ -352,16 +365,31 @@ int main(int argc, char **argv) {
 
         optimizeParameters(task, options.get(), boptParams);
     } else {
-        // TODO
-        /*
-        task_vector_t tasks = getTasks(options.get().data);
-        bopt_params boptParams = getBoptParams(options.get());
+        // TODO: refactor duplicate code
 
-        for (const path_struct_t &task : tasks) {
-                optimizeParameters(task, options.get(), boptParams);
+        namespace fs = boost::filesystem;
+
+        std::set<fs::path> files;
+        std::copy(fs::recursive_directory_iterator(options.get().data), fs::recursive_directory_iterator(),
+                  std::inserter(files, files.begin()));
+
+        for (const fs::path entry : files) {
+
+            if (fs::is_regular_file(entry)) {
+
+                if (entry.extension() == ".tdat") {
+                    fs::path groundTruthPath(entry);
+
+                    if (fs::is_regular_file(groundTruthPath)) {
+                        std::cout << "Optimizing: " << groundTruthPath.string() << std::endl;
+
+                        multiple_path_struct_t task = getTasks(groundTruthPath.parent_path());
+
+                        optimizeParameters(task, options.get(), boptParams);
+                    }
+                }
+            }
         }
-        */
-        return EXIT_FAILURE;
     }
 
 	return EXIT_SUCCESS;

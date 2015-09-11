@@ -1,13 +1,11 @@
-/*
-
 #pragma once
 
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/settings/EllipseFitterSettings.h"
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/Tag.h"
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/EllipseFitter.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/settings/EllipseFitterSettings.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/datastructure/Tag.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/EllipseFitter.h"
 
 namespace opt {
 
@@ -22,17 +20,25 @@ struct EllipseFitterResult : OptimizationResult {
 		: OptimizationResult(oresult.fscore, oresult.recall, oresult.precision)
 		, settings(settings) {}
 
+    EllipseFitterResult(std::vector<OptimizationResult> const &oresults,
+                    pipeline::settings::ellipsefitter_settings_t const &settings)
+        : EllipseFitterResult(getMeanFscore(oresults),
+                             getMeanRecall(oresults),
+                             getMeanPrecision(oresults),
+                             settings)
+    {}
+
 	pipeline::settings::ellipsefitter_settings_t settings;
 };
 
 class EllipseFitterModel : public OptimizationModel {
 public:
-	EllipseFitterModel(bopt_params param, path_struct_t const &task,
-					   std::vector<pipeline::Tag> const &taglist,
+    EllipseFitterModel(bopt_params param, multiple_path_struct_t const &task,
+                       TaglistByImage const &taglist,
                        ParameterMaps const &limitsByParameter);
 
-	EllipseFitterModel(bopt_params param, const path_struct_t &task,
-					   std::vector<pipeline::Tag> const &taglist);
+    EllipseFitterModel(bopt_params param, const multiple_path_struct_t &task,
+                       TaglistByImage const &taglist);
 
     virtual ParameterMaps getDefaultLimits() override;
 
@@ -55,8 +61,6 @@ public:
   private:
 	pipeline::settings::ellipsefitter_settings_t _settings;
 	pipeline::EllipseFitter _ellipseFitter;
-	std::vector<pipeline::Tag> _taglist;
+    TaglistByImage _taglistByImage;
 };
 }
-
-*/

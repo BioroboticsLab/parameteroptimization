@@ -50,4 +50,39 @@ void OptimizationModel::addLimitToParameter(const std::string &param, limits_t l
         parameterMaps.queryIdxByParameter[param] = parameterMaps.queryIdxByParameter.size() - 1;
     }
 }
+
+double getMeanFscore(const std::vector<OptimizationResult> &results) {
+    const double sum = std::accumulate(results.begin(), results.end(), 0.,
+                                       [](double& acc, OptimizationResult const& result)
+    {
+        std::cout << result.fscore << std::endl;
+        return acc + result.fscore;
+    });
+
+    assert(!results.empty());
+    return sum / results.size();
+}
+
+double getMeanPrecision(const std::vector<OptimizationResult> &results) {
+    const double sum = std::accumulate(results.begin(), results.end(), 0.,
+                                       [](double& acc, OptimizationResult const& result)
+    {
+        return acc + result.precision;
+    });
+
+    assert(!results.empty());
+    return sum / results.size();
+}
+
+double getMeanRecall(const std::vector<OptimizationResult> &results) {
+    const double sum = std::accumulate(results.begin(), results.end(), 0.,
+                                       [](double& acc, OptimizationResult const& result)
+    {
+        return acc + result.recall;
+    });
+
+    assert(!results.empty());
+    return sum / results.size();
+}
+
 }

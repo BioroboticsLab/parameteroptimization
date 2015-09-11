@@ -1,19 +1,16 @@
-/*
-
 #include "GridFitterModel.h"
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/datastructure/Tag.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/datastructure/Tag.h"
 
 namespace opt {
 
-GridfitterModel::GridfitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglistLocalizer, const std::vector<pipeline::Tag> &taglistEllipseFitter, const ParameterMaps &parameterMaps)
+GridfitterModel::GridfitterModel(bopt_params param, const multiple_path_struct_t &task, const TaglistByImage &taglistEllipseFitter, const ParameterMaps &parameterMaps)
     : OptimizationModel(param, task, parameterMaps, getNumDimensions())
-	, _taglistLocalizer(taglistLocalizer)
 	, _taglistEllipseFitter(taglistEllipseFitter)
 {}
 
-GridfitterModel::GridfitterModel(bopt_params param, const path_struct_t &task, const std::vector<pipeline::Tag> &taglistLocalizer, const std::vector<pipeline::Tag> &taglistEllipseFitter)
-	: GridfitterModel(param, task, taglistLocalizer, taglistEllipseFitter, getDefaultLimits())
+GridfitterModel::GridfitterModel(bopt_params param, const multiple_path_struct_t &task, const TaglistByImage &taglistEllipseFitter)
+    : GridfitterModel(param, task, taglistEllipseFitter, getDefaultLimits())
 {}
 
 OptimizationModel::ParameterMaps GridfitterModel::getDefaultLimits()
@@ -68,29 +65,43 @@ void GridfitterModel::applyQueryToSettings(const boost::numeric::ublas::vector<d
 
 boost::optional<GridfitterResult> GridfitterModel::evaluate(pipeline::settings::gridfitter_settings_t &settings)
 {
-	std::vector<pipeline::Tag> tagListCopy(_taglistEllipseFitter);
+    std::vector<GridfitterResult> results;
 
-	_gridfitter.loadSettings(settings);
+    for (auto const& imagesByEvaluator : _imagesByEvaluator)
+    {
+        GroundTruthEvaluation* evaluator = imagesByEvaluator.first.get();
+        const std::vector<boost::filesystem::path>& imagesPaths = imagesByEvaluator.second;
 
-	// TODO: ref problem when using taglistLocalizer
-    _evaluators->evaluateLocalizer(0, tagListCopy);
-    _evaluators->evaluateEllipseFitter(tagListCopy);
-	tagListCopy = _gridfitter.process(std::move(tagListCopy));
-    _evaluators->evaluateGridFitter();
-	tagListCopy = _decoder.process(std::move(tagListCopy));
-    _evaluators->evaluateDecoder();
+        _gridfitter.loadSettings(settings);
 
-    const auto decoderResult = _evaluators->getDecoderResults();
+        size_t frameNumber = 0;
+        for (const boost::filesystem::path& imagePath : imagesPaths)
+        {
+            std::vector<pipeline::Tag> tagListCopy(_taglistEllipseFitter[imagePath]);
 
-	const boost::optional<double> avgHamming = decoderResult.getAverageHammingDistanceNormalized();
+            evaluator->evaluateLocalizer(0, tagListCopy);
+            evaluator->evaluateEllipseFitter(tagListCopy);
 
-    _evaluators->reset();
+            tagListCopy = _gridfitter.process(std::move(tagListCopy));
+            evaluator->evaluateGridFitter();
+            tagListCopy = _decoder.process(std::move(tagListCopy));
+            evaluator->evaluateDecoder();
 
-	if (avgHamming) {
-		return GridfitterResult(avgHamming.get(), settings);
-	}
+            const auto decoderResult = evaluator->getDecoderResults();
 
-	return boost::optional<GridfitterResult>();
+            const boost::optional<double> avgHamming = decoderResult.getAverageHammingDistanceNormalized();
+
+            GridfitterResult result(avgHamming ? avgHamming.get() : 1., settings);
+
+            results.push_back(result);
+
+            ++frameNumber;
+
+            evaluator->reset();
+        }
+    }
+
+    return GridfitterResult(results, settings);
 }
 
 double GridfitterModel::evaluateSample(const boost::numeric::ublas::vector<double> &query)
@@ -117,6 +128,16 @@ bool GridfitterModel::checkReachability(const boost::numeric::ublas::vector<doub
 	return true;
 }
 
+double getMeanScore(const std::vector<GridfitterResult> &results) {
+    const double sum = std::accumulate(results.begin(), results.end(), 0.,
+                                       [](double& acc, GridfitterResult const& result)
+    {
+        std::cout << result.score << std::endl;
+        return acc + result.score;
+    });
+
+    assert(!results.empty());
+    return sum / results.size();
 }
 
-*/
+}

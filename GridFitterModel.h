@@ -1,15 +1,16 @@
-/*
-
 #pragma once
 
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/settings/GridFitterSettings.h"
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/GridFitter.h"
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/pipeline/Decoder.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/settings/GridFitterSettings.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/GridFitter.h"
+#include "source/tracking/algorithm/BeesBook/pipeline/Decoder.h"
 
 namespace opt {
+
+struct GridfitterResult;
+double getMeanScore(const std::vector<GridfitterResult> &results);
 
 struct GridfitterResult {
 	GridfitterResult(double score,
@@ -22,20 +23,24 @@ struct GridfitterResult {
 		: GridfitterResult(oresult.score, settings)
 	{}
 
+    GridfitterResult(std::vector<GridfitterResult> const & results,
+                    pipeline::settings::gridfitter_settings_t const &settings)
+        : GridfitterResult(getMeanScore(results),
+                           settings)
+    {}
+
 	double score;
 	pipeline::settings::gridfitter_settings_t settings;
 };
 
 class GridfitterModel : public OptimizationModel {
   public:
-	GridfitterModel(bopt_params param, path_struct_t const &task,
-				   std::vector<pipeline::Tag> const &taglistLocalizer,
-				   std::vector<pipeline::Tag> const &taglistEllipseFitter,
+    GridfitterModel(bopt_params param, multiple_path_struct_t const &task,
+                   TaglistByImage const &taglistEllipseFitter,
                    ParameterMaps const &limitsByParameter);
 
-	GridfitterModel(bopt_params param, const path_struct_t &task,
-				   std::vector<pipeline::Tag> const &taglistLocalizer,
-				   std::vector<pipeline::Tag> const &taglistEllipseFitter);
+    GridfitterModel(bopt_params param, const multiple_path_struct_t &task,
+                   TaglistByImage const &taglistEllipseFitter);
 
     virtual ParameterMaps getDefaultLimits() override;
 
@@ -53,10 +58,8 @@ class GridfitterModel : public OptimizationModel {
   private:
 	pipeline::settings::gridfitter_settings_t _settings;
 	pipeline::GridFitter _gridfitter;
-	pipeline::Decoder _decoder;
-	std::vector<pipeline::Tag> _taglistLocalizer;
-	std::vector<pipeline::Tag> _taglistEllipseFitter;
+    pipeline::Decoder _decoder;
+
+    TaglistByImage _taglistEllipseFitter;
 };
 }
-
-*/

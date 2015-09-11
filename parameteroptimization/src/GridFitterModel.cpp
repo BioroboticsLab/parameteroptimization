@@ -1,6 +1,6 @@
 #include "GridFitterModel.h"
 
-#include "source/tracking/algorithm/BeesBook/pipeline/datastructure/Tag.h"
+#include <pipeline/datastructure/Tag.h>
 
 namespace opt {
 

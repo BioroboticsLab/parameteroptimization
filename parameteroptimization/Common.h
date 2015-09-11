@@ -6,8 +6,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
-#include "source/tracking/algorithm/BeesBook/ImgAnalysisTracker/GroundTruthEvaluator.h"
-#include "source/tracking/algorithm/BeesBook/pipeline/util/Util.h"
+#include <pipeline/util/GroundTruthEvaluator.h>
+#include <pipeline/util/Util.h>
 
 namespace opt {
 

@@ -3,9 +3,9 @@
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/pipeline/settings/GridFitterSettings.h"
-#include "source/tracking/algorithm/BeesBook/pipeline/GridFitter.h"
-#include "source/tracking/algorithm/BeesBook/pipeline/Decoder.h"
+#include <pipeline/settings/GridFitterSettings.h>
+#include <pipeline/GridFitter.h>
+#include <pipeline/Decoder.h>
 
 namespace opt {
 

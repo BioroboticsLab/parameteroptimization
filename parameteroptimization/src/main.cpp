@@ -3,7 +3,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
 
-#include "source/utility/MeasureTimeRAII.h"
+//#include "source/utility/MeasureTimeRAII.h"
 
 #include "LocalizerModel.h"
 #include "EllipseFitterModel.h"
@@ -14,7 +14,7 @@
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 
-#include "source/tracking/serialization/SerializationData.h"
+#include <biotracker/serialization/SerializationData.h>
 
 namespace opt {
 
@@ -159,7 +159,8 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 	});
 
 	auto optimizeLocalizer = [&]() {
-		Util::MeasureTimeRAII measureTime;
+        // TODO!
+        //Util::MeasureTimeRAII measureTime;
 
         LocalizerModel model(params, task, options.deeplocalizer_paths);
 
@@ -205,7 +206,7 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 	lsettings.writeToJson((task.outputFolder / "lsettings.json").string());
 
 	auto optimizeEllipseFitter = [&]() {
-		Util::MeasureTimeRAII measureTime;
+        //Util::MeasureTimeRAII measureTime;
 
 		pipeline::Preprocessor preprocessor;
 		preprocessor.loadSettings(psettings);
@@ -262,7 +263,7 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 	esettings.writeToJson((task.outputFolder / "esettings.json").string());
 
 	auto optimizeGridFitter = [&]() {
-		Util::MeasureTimeRAII measureTime;
+        //Util::MeasureTimeRAII measureTime;
 
 		pipeline::Preprocessor preprocessor;
 		preprocessor.loadSettings(psettings);

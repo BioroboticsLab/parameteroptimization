@@ -3,9 +3,9 @@
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/pipeline/settings/EllipseFitterSettings.h"
-#include "source/tracking/algorithm/BeesBook/pipeline/datastructure/Tag.h"
-#include "source/tracking/algorithm/BeesBook/pipeline/EllipseFitter.h"
+#include <pipeline/datastructure/Tag.h>
+#include <pipeline/settings/EllipseFitterSettings.h>
+#include <pipeline/EllipseFitter.h>
 
 namespace opt {
 

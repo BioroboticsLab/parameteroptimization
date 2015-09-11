@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include <bayesopt/bayesopt.hpp>
+#include <bayesopt.hpp>
 
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>

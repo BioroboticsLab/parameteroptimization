@@ -3,9 +3,9 @@
 #include "Common.h"
 #include "OptimizationModel.h"
 
-#include "source/tracking/algorithm/BeesBook/pipeline/settings/LocalizerSettings.h"
-#include "source/tracking/algorithm/BeesBook/pipeline/Preprocessor.h"
-#include "source/tracking/algorithm/BeesBook/pipeline/Localizer.h"
+#include <pipeline/settings/LocalizerSettings.h>
+#include <pipeline/Preprocessor.h>
+#include <pipeline/Localizer.h>
 
 namespace opt {
 

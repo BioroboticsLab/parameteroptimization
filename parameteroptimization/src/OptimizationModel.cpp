@@ -6,7 +6,9 @@
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 
-#include "source/tracking/serialization/SerializationData.h"
+#include <biotracker/serialization/SerializationData.h>
+
+#include <pipeline/util/GroundTruthEvaluator.h>
 
 namespace opt {
 
@@ -36,8 +38,13 @@ OptimizationModel::OptimizationModel(bopt_params param, const multiple_path_stru
             _imageByPath.insert({imagePath, image});
         }
 
+        GroundTruthEvaluation::ResultsByFrame resultsByFrame;
+        for (TrackedObject const& object : data.getTrackedObjects()) {
+            // TODO!
+        }
+
         _imagesByEvaluator.insert(std::make_pair(
-                               std::make_unique<GroundTruthEvaluation>(std::move(data)),
+                               std::make_unique<GroundTruthEvaluation>(std::move(resultsByFrame)),
                                keyValuePair.second));
     }
 }

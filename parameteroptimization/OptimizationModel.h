@@ -2,9 +2,7 @@
 
 #include "Common.h"
 
-#include "source/utility/stdext.h"
-
-#include <bayesopt/bayesopt.hpp>
+#include <bayesopt.hpp>
 
 namespace opt {
 

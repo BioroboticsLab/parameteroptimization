@@ -41,10 +41,16 @@ else()
   include(${CPM_DIR}/CPM.cmake)
 endif()
 
-CPM_AddModule("BioTrackerLib"
-    GIT_REPOSITORY git@github.com:BioroboticsLab/biotracker_core.git
-    GIT_TAG master
-)
+if(NOT DEFINED BIOTRACKER_CORE_PATH)
+	CPM_AddModule("biotracker_core"
+		GIT_REPOSITORY "https://github.com/BioroboticsLab/biotracker_core.git"
+		GIT_TAG "master"
+	)
+else()
+	CPM_AddModule("biotracker_core"
+		SOURCE_DIR "${BIOTRACKER_CORE_PATH}"
+	)
+endif()
 
 CPM_AddModule("cpm_bayesopt"
     GIT_REPOSITORY git@github.com:BioroboticsLab/cpm_bayesopt.git
@@ -53,10 +59,16 @@ CPM_AddModule("cpm_bayesopt"
 
 set(USE_DEEPLOCALIZER "1")
 
-CPM_AddModule("Pipeline"
-    GIT_REPOSITORY git@github.com:BioroboticsLab/pipeline.git
-    GIT_TAG groundtruthevaluator
-)
+if(NOT DEFINED PIPELINE_PATH)
+	CPM_AddModule("pipeline"
+		GIT_REPOSITORY "https://github.com/BioroboticsLab/pipeline.git"
+		GIT_TAG "groundtruthevaluator"
+	)
+else()
+	CPM_AddModule("pipeline"
+		SOURCE_DIR "${PIPELINE_PATH}"
+	)
+endif()
 
 CPM_InitModule(${CPM_MODULE_NAME})
 

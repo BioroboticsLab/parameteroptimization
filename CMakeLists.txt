@@ -62,7 +62,7 @@ set(USE_DEEPLOCALIZER "1")
 if(NOT DEFINED PIPELINE_PATH)
 	CPM_AddModule("pipeline"
 		GIT_REPOSITORY "https://github.com/BioroboticsLab/pipeline.git"
-		GIT_TAG "groundtruthevaluator"
+		GIT_TAG "cpm"
 	)
 else()
 	CPM_AddModule("pipeline"

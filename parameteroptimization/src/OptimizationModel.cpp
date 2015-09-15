@@ -10,6 +10,8 @@
 
 #include <pipeline/util/GroundTruthEvaluator.h>
 
+#include "Grid3D.h"
+
 namespace opt {
 
 OptimizationModel::OptimizationModel(bopt_params param, const multiple_path_struct_t &task,
@@ -40,7 +42,25 @@ OptimizationModel::OptimizationModel(bopt_params param, const multiple_path_stru
 
         GroundTruthEvaluation::ResultsByFrame resultsByFrame;
         for (TrackedObject const& object : data.getTrackedObjects()) {
-            // TODO!
+            for (size_t frameNumber = 0; frameNumber <= object.getLastFrameNumber(); ++frameNumber) {
+                std::vector<GroundTruthGridSPtr>& results = resultsByFrame[frameNumber];
+
+                const std::shared_ptr<Grid3D> grid3d = object.maybeGet<Grid3D>(frameNumber);
+
+                if (!grid3d) continue;
+
+                // convert to PipelineGrid
+                const auto grid = std::make_shared<PipelineGrid>(
+                            grid3d->getCenter(), grid3d->getPixelRadius(),
+                            grid3d->getZRotation(), grid3d->getYRotation(),
+                            grid3d->getXRotation());
+                grid->setIdArray(grid3d->getIdArray());
+
+                // insert in set
+                if (grid) {
+                    results.push_back(grid);
+                }
+            }
         }
 
         _imagesByEvaluator.insert(std::make_pair(

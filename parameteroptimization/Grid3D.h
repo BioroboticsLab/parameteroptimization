@@ -6,7 +6,7 @@
 #include <opencv2/opencv.hpp>      // cv::Mat, cv::Point3_
 #include <boost/logic/tribool.hpp> // boost::tribool
 
-#include <source/tracking/serialization/ObjectModel.h>
+#include <biotracker/serialization/ObjectModel.h>
 
 class Grid3D : public ObjectModel
 {

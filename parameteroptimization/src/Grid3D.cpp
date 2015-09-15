@@ -2,14 +2,15 @@
 
 #include <numeric>
 
-#include <source/tracking/serialization/types.hpp>
+#include <biotracker/serialization/types.hpp>
+
 #include <cereal/types/vector.hpp>
 #include <cereal/types/array.hpp>
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/polymorphic.hpp>
 
-#include "../pipeline/util/CvHelper.h"
+#include <pipeline/util/CvHelper.h>
 
 const Grid3D::coordinates3D_t Grid3D::_coordinates3D = Grid3D::generate_3D_base_coordinates();
 

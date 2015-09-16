@@ -53,7 +53,7 @@ else()
 endif()
 
 CPM_AddModule("cpm_bayesopt"
-    GIT_REPOSITORY git@github.com:BioroboticsLab/cpm_bayesopt.git
+    GIT_REPOSITORY "https://github.com/BioroboticsLab/cpm_bayesopt.git"
     GIT_TAG master
 )
 

@@ -10,7 +10,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(-DUSE_DEEPLOCALIZER)
 
-add_library(${CPM_LIB_TARGET_NAME} STATIC
+add_library(${CPM_LIB_TARGET_NAME} SHARED
 	${lib_src} ${hdr}
 )
 

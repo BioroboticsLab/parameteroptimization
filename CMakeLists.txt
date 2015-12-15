@@ -62,11 +62,13 @@ set(USE_DEEPLOCALIZER "1")
 if(NOT DEFINED PIPELINE_PATH)
 	CPM_AddModule("pipeline"
 		GIT_REPOSITORY "https://github.com/BioroboticsLab/pipeline.git"
-		GIT_TAG "cpm"
+		GIT_TAG "master"
+                EXPORT_MODULE TRUE
 	)
 else()
 	CPM_AddModule("pipeline"
 		SOURCE_DIR "${PIPELINE_PATH}"
+                EXPORT_MODULE TRUE
 	)
 endif()
 

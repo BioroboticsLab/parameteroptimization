@@ -18,19 +18,21 @@ OptimizationModel::ParameterMaps EllipseFitterModel::getDefaultLimits()
     OptimizationModel::ParameterMaps::limitsByParam &limitsByParameter = parameterMaps.limitsByParameter;
 
 	using namespace pipeline::settings::EllipseFitter;
-	limitsByParameter[Params::CANNY_INITIAL_HIGH]    = {25, 150};
-	limitsByParameter[Params::CANNY_VALUES_DISTANCE] = {10, 100};
-	limitsByParameter[Params::CANNY_MEAN_MIN]        = {5, 12};
-	limitsByParameter[Params::CANNY_MEAN_MAX]        = {13, 30};
+    limitsByParameter[Params::CANNY_INITIAL_HIGH]    = {25, 150};
+    limitsByParameter[Params::CANNY_VALUES_DISTANCE] = {10, 100};
+    limitsByParameter[Params::CANNY_MEAN_MIN]        = {3, 9};
+    limitsByParameter[Params::CANNY_MEAN_MAX]        = {10, 30};
 
-	limitsByParameter[Params::MIN_MAJOR_AXIS] = {20, 45};
+    limitsByParameter[Params::MIN_MAJOR_AXIS] = {20, 45};
 	limitsByParameter[Params::MAX_MAJOR_AXIS] = {46, 70};
-	limitsByParameter[Params::MIN_MINOR_AXIS] = {20, 45};
+    limitsByParameter[Params::MIN_MINOR_AXIS] = {15, 45};
 	limitsByParameter[Params::MAX_MINOR_AXIS] = {46, 70};
 
-	limitsByParameter[Params::THRESHOLD_EDGE_PIXELS] = {15, 50};
-	limitsByParameter[Params::THRESHOLD_BEST_VOTE]   = {1500, 4000};
-	limitsByParameter[Params::THRESHOLD_VOTE]        = {500, 1400};
+    limitsByParameter[Params::ELLIPSE_REGULARISATION] = {std::numeric_limits<double>::min(), 100.};
+
+    limitsByParameter[Params::THRESHOLD_EDGE_PIXELS] = {15, 100};
+    limitsByParameter[Params::THRESHOLD_BEST_VOTE]   = {1500, 10000};
+    limitsByParameter[Params::THRESHOLD_VOTE]        = {100, 1400};
 
     return parameterMaps;
 }
@@ -49,6 +51,8 @@ void EllipseFitterModel::applyQueryToSettings(const boost::numeric::ublas::vecto
 	setValueFromQuery<int>(settings, Params::MAX_MAJOR_AXIS, query[idx++]);
 	setValueFromQuery<int>(settings, Params::MIN_MINOR_AXIS, query[idx++]);
 	setValueFromQuery<int>(settings, Params::MAX_MINOR_AXIS, query[idx++]);
+
+    setValueFromQuery<double>(settings, Params::ELLIPSE_REGULARISATION, query[idx++]);
 
 	setValueFromQuery<int>(settings, Params::THRESHOLD_EDGE_PIXELS, query[idx++]);
 	setValueFromQuery<int>(settings, Params::THRESHOLD_BEST_VOTE, query[idx++]);

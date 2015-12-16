@@ -52,7 +52,7 @@ public:
 
 	virtual bool checkReachability(const boost::numeric::ublas::vector<double> &query) override;
 
-	static size_t getNumDimensions() { return 11; }
+    static size_t getNumDimensions() { return 12; }
 
 	pipeline::settings::ellipsefitter_settings_t getEllipseFitterSettings() const {
 		return _settings;

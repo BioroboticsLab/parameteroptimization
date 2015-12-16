@@ -58,11 +58,11 @@ OptimizationModel::ParameterMaps LocalizerModel::getDefaultLimits() {
 		using namespace pipeline::settings::Localizer;
         addLimitToParameterWrapper(Params::BINARY_THRESHOLD, {10, 50});
         addLimitToParameterWrapper(Params::FIRST_DILATION_NUM_ITERATIONS, {1, 5});
-        addLimitToParameterWrapper(Params::FIRST_DILATION_SIZE, {1, 10});
+        addLimitToParameterWrapper(Params::FIRST_DILATION_SIZE, {1, 20});
         addLimitToParameterWrapper(Params::EROSION_SIZE, {10, 40});
         addLimitToParameterWrapper(Params::SECOND_DILATION_SIZE, {1, 5});
         addLimitToParameterWrapper(Params::MIN_NUM_PIXELS, {1, 200});
-        addLimitToParameterWrapper(Params::MAX_NUM_PIXELS, {1, 200});
+        addLimitToParameterWrapper(Params::MAX_NUM_PIXELS, {1, 10000});
 #ifdef USE_DEEPLOCALIZER
         addLimitToParameterWrapper(Params::DEEPLOCALIZER_PROBABILITY_THRESHOLD, {0., 1.});
 #endif
@@ -70,14 +70,14 @@ OptimizationModel::ParameterMaps LocalizerModel::getDefaultLimits() {
 
 	{
 		using namespace pipeline::settings::Preprocessor;
-        addLimitToParameterWrapper(Params::OPT_FRAME_SIZE, {25, 500});
+        addLimitToParameterWrapper(Params::OPT_FRAME_SIZE, {20, 500});
         addLimitToParameterWrapper(Params::OPT_AVERAGE_CONTRAST_VALUE, {0, 255});
         addLimitToParameterWrapper(Params::OPT_AVERAGE_CONTRAST_VALUE, {0, 255});
         addLimitToParameterWrapper(Params::COMB_MIN_SIZE, {0, 150});
-        addLimitToParameterWrapper(Params::COMB_MAX_SIZE, {0, 150});
+        addLimitToParameterWrapper(Params::COMB_MAX_SIZE, {0, 250});
         addLimitToParameterWrapper(Params::COMB_THRESHOLD, {0, 255});
         addLimitToParameterWrapper(Params::HONEY_STD_DEV, {0, 255});
-        addLimitToParameterWrapper(Params::HONEY_FRAME_SIZE, {5, 50});
+        addLimitToParameterWrapper(Params::HONEY_FRAME_SIZE, {5, 150});
         addLimitToParameterWrapper(Params::HONEY_AVERAGE_VALUE, {0, 255});
 	}
 

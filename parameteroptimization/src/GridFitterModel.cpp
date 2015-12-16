@@ -26,6 +26,8 @@ OptimizationModel::ParameterMaps GridfitterModel::getDefaultLimits()
 	limitsByParameter[Params::ERR_FUNC_ALPHA_OUTER_EDGE] = {0., 1.};
 	limitsByParameter[Params::ERR_FUNC_ALPHA_INNER_EDGE] = {0., 1.};
 
+    limitsByParameter[Params::SOBEL_THRESHOLD] = {0., 1.};
+
 	limitsByParameter[Params::ADAPTIVE_BLOCK_SIZE] = {3., 61.};
 	limitsByParameter[Params::ADAPTIVE_C] = {0., 255.};
 
@@ -49,6 +51,8 @@ void GridfitterModel::applyQueryToSettings(const boost::numeric::ublas::vector<d
 	setValueFromQuery<double>(settings, Params::ERR_FUNC_ALPHA_VARIANCE, query[idx++]);
 	setValueFromQuery<double>(settings, Params::ERR_FUNC_ALPHA_OUTER_EDGE, query[idx++]);
 	setValueFromQuery<double>(settings, Params::ERR_FUNC_ALPHA_INNER_EDGE, query[idx++]);
+
+    setValueFromQuery<double>(settings, Params::SOBEL_THRESHOLD, query[idx++]);
 
 	setOddValueFromQuery<int>(settings, Params::ADAPTIVE_BLOCK_SIZE, query[idx++]);
 	setValueFromQuery<double>(settings, Params::ADAPTIVE_C, query[idx++]);

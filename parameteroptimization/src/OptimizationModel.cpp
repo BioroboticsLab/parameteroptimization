@@ -55,6 +55,8 @@ OptimizationModel::OptimizationModel(bopt_params param, const multiple_path_stru
                             grid3d->getZRotation(), grid3d->getYRotation(),
                             grid3d->getXRotation());
                 grid->setIdArray(grid3d->getIdArray());
+                grid->setSettable(grid3d->isSettable());
+                grid->setHasBeenSet(grid3d->hasBeenBitToggled() == boost::logic::tribool::true_value);
 
                 // insert in set
                 if (grid) {

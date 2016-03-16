@@ -19,7 +19,6 @@ LocalizerModel::LocalizerModel(bopt_params param, const multiple_path_struct_t &
     _preprocessorSettings.setValue(settingspreprocessor::COMB_ENABLED, true);
     _preprocessorSettings.setValue(settingspreprocessor::HONEY_ENABLED, true);
 
-#ifdef USE_DEEPLOCALIZER
     namespace settingslocalizer = pipeline::settings::Localizer::Params;
     if (deeplocalizerPaths) {
         _localizerSettings.setValue(settingslocalizer::DEEPLOCALIZER_FILTER, true);
@@ -27,7 +26,6 @@ LocalizerModel::LocalizerModel(bopt_params param, const multiple_path_struct_t &
         _localizerSettings.setValue(settingslocalizer::DEEPLOCALIZER_PARAM_FILE, (*deeplocalizerPaths).param_path);
         _localizerSettings.setValue(settingslocalizer::TAG_SIZE, 100u);
     }
-#endif
 
     _localizer->loadSettings(_localizerSettings);
 
@@ -63,9 +61,7 @@ OptimizationModel::ParameterMaps LocalizerModel::getDefaultLimits() {
         addLimitToParameterWrapper(Params::SECOND_DILATION_SIZE, {1, 5});
         addLimitToParameterWrapper(Params::MIN_NUM_PIXELS, {1, 200});
         addLimitToParameterWrapper(Params::MAX_NUM_PIXELS, {1, 10000});
-#ifdef USE_DEEPLOCALIZER
         addLimitToParameterWrapper(Params::DEEPLOCALIZER_PROBABILITY_THRESHOLD, {0., 1.});
-#endif
     }
 
 	{
@@ -99,11 +95,8 @@ void LocalizerModel::applyQueryToSettings(const boost::numeric::ublas::vector<do
         setValueFromQuery<unsigned int>(lsettings, Params::SECOND_DILATION_SIZE, query);
         setValueFromQuery<unsigned int>(lsettings, Params::MIN_NUM_PIXELS, query);
         setValueFromQuery<unsigned int>(lsettings, Params::MAX_NUM_PIXELS, query);
-#ifdef USE_DEEPLOCALIZER
         setValueFromQuery<double>(lsettings, Params::DEEPLOCALIZER_PROBABILITY_THRESHOLD, query);
-#endif
     }
-
 	{
 		using namespace pipeline::settings::Preprocessor;
         setValueFromQuery<unsigned int>(psettings, Params::OPT_FRAME_SIZE, query);
@@ -251,11 +244,7 @@ bool LocalizerModel::checkReachability(const boost::numeric::ublas::vector<doubl
 
 size_t LocalizerModel::getNumDimensions()
 {
-#ifndef USE_DEEPLOCALIZER
     return 15;
-#else
-    return 16;
-#endif
 }
 
 

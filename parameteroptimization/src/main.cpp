@@ -219,8 +219,8 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 
             for (boost::filesystem::path const& imagePath : imagePathVector) {
                 cv::Mat image = cv::imread(imagePath.string(), CV_LOAD_IMAGE_GRAYSCALE);
-                cv::Mat imagePreprocessed = preprocessor.process(image);
-                taglist_t taglist = localizer.process(std::move(image), std::move(imagePreprocessed));
+                pipeline::PreprocessorResult preprocessed = preprocessor.process(image);
+                taglist_t taglist = localizer.process(std::move(preprocessed));
 
                 taglistByImage.insert({imagePath, taglist});
             }
@@ -278,8 +278,8 @@ void optimizeParameters(const multiple_path_struct_t &task, const CommandLineOpt
 
             for (boost::filesystem::path const& imagePath : imagePathVector) {
                 cv::Mat image = cv::imread(imagePath.string(), CV_LOAD_IMAGE_GRAYSCALE);
-                cv::Mat imagePreprocessed = preprocessor.process(image);
-                taglist_t taglistLocalizer = localizer.process(std::move(image), std::move(imagePreprocessed));
+                pipeline::PreprocessorResult preprocessed = preprocessor.process(image);
+                taglist_t taglistLocalizer = localizer.process(std::move(preprocessed));
 
                 taglist_t taglist = taglistLocalizer;
                 taglist = ellipseFitter.process(std::move(taglist));

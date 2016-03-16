@@ -128,8 +128,8 @@ LocalizerModel::evaluate(pipeline::settings::localizer_settings_t &lsettings,
         {
             cv::Mat img(_imageByPath[imagePath]);
 
-            cv::Mat imgPreprocessed = _preprocessor->process(img);
-            taglist_t taglist = _localizer->process(std::move(img), std::move(imgPreprocessed));
+            pipeline::PreprocessorResult preprocessed = _preprocessor->process(img);
+            taglist_t taglist = _localizer->process(std::move(preprocessed));
 
             evaluator->evaluateLocalizer(frameNumber, taglist);
 

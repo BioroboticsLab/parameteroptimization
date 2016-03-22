@@ -127,7 +127,7 @@ double GridfitterModel::evaluateSample(const boost::numeric::ublas::vector<doubl
 	}
 }
 
-bool GridfitterModel::checkReachability(const boost::numeric::ublas::vector<double> &query)
+bool GridfitterModel::checkReachability(const boost::numeric::ublas::vector<double> &)
 {
 	return true;
 }

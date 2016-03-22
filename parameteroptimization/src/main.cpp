@@ -16,6 +16,8 @@
 
 #include <biotracker/serialization/SerializationData.h>
 
+namespace Serialization = BioTracker::Core::Serialization;
+
 namespace opt {
 
 boost::optional<CommandLineOptions> getCommandLineOptions(int argc, char **argv) {

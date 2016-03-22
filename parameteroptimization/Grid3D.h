@@ -8,7 +8,7 @@
 
 #include <biotracker/serialization/ObjectModel.h>
 
-class Grid3D : public ObjectModel
+class Grid3D : public BioTracker::Core::ObjectModel
 {
 public:
 	/******************************************

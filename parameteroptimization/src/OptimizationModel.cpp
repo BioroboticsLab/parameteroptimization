@@ -12,6 +12,9 @@
 
 #include "Grid3D.h"
 
+namespace Serialization = BioTracker::Core::Serialization;
+using BioTracker::Core::TrackedObject;
+
 namespace opt {
 
 OptimizationModel::OptimizationModel(bopt_params param, const multiple_path_struct_t &task,

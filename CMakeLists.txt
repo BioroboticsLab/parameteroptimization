@@ -53,8 +53,8 @@ else()
 endif()
 
 include_biotracker_core(master)
-include_pipeline(use-mxnet)
-include_deeplocalizer_models(use-mxnet)
+include_pipeline(master)
+include_deeplocalizer_models(master)
 
 CPM_AddModule("cpm_bayesopt"
     GIT_REPOSITORY "https://github.com/BioroboticsLab/cpm_bayesopt.git"
